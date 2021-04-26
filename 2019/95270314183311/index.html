@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+
+    
+
+    
+    <title>【JVM从小白学成大佬】8.弄明白CMS和G1，就靠这一篇了 | 胡尔摩斯</title>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="keywords" content="JAVA,JVM" />
+    
+    <meta name="description" content="在开始介绍CMS和G1前，我们可以剧透几点：  根据不同分代的特点，收集器可能不同。有些收集器可以同时用于新生代和老年代，而有些时候，则需要分别为新生代或老年代选用合适的收集器。一般来说，新生代收集器的收集频率较高，应选用性能高效的收集器；而老年代收集器收集次数相对较少，对空间较为敏感，应当避免选择基于复制算法的收集器。 在垃圾收集执行的时刻，应用程序需要暂停运行。 可以串行收集，也可以并行收集。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【JVM从小白学成大佬】8.弄明白CMS和G1，就靠这一篇了">
+<meta property="og:url" content="http://huermosi.xyz/2019/95270314183311/index.html">
+<meta property="og:site_name" content="胡尔摩斯">
+<meta property="og:description" content="在开始介绍CMS和G1前，我们可以剧透几点：  根据不同分代的特点，收集器可能不同。有些收集器可以同时用于新生代和老年代，而有些时候，则需要分别为新生代或老年代选用合适的收集器。一般来说，新生代收集器的收集频率较高，应选用性能高效的收集器；而老年代收集器收集次数相对较少，对空间较为敏感，应当避免选择基于复制算法的收集器。 在垃圾收集执行的时刻，应用程序需要暂停运行。 可以串行收集，也可以并行收集。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://huermosi.xyz/2019/95270314183311/g1.png">
+<meta property="article:published_time" content="2019-10-25T10:33:11.000Z">
+<meta property="article:modified_time" content="2021-04-08T08:49:31.558Z">
+<meta property="article:author" content="胡尔摩斯">
+<meta property="article:tag" content="JAVA">
+<meta property="article:tag" content="JVM">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://huermosi.xyz/2019/95270314183311/g1.png">
+    
+
+    
+        <link rel="alternate" href="/atom.xml" title="胡尔摩斯" type="application/atom+xml" />
+    
+
+    
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/libs/titillium-web/styles.css">
+
+    
+<link rel="stylesheet" href="/libs/source-code-pro/styles.css">
+
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    
+<script src="/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    
+    
+        
+<link rel="stylesheet" href="/libs/lightgallery/css/lightgallery.min.css">
+
+    
+    
+        
+<link rel="stylesheet" href="/libs/justified-gallery/justifiedGallery.min.css">
+
+    
+    
+    
+
+
+	
+	<!--百度统计-->
+	<script>
+	var _hmt = _hmt || [];
+	(function() {
+	  var hm = document.createElement("script");
+	  hm.src = "https://hm.baidu.com/hm.js?025104cd42fa406fd2c9f41125b6d7ce";
+	  var s = document.getElementsByTagName("script")[0]; 
+	  s.parentNode.insertBefore(hm, s);
+	})();
+	</script>
+	
+	<!--百度SEO-->
+	<script>
+	(function(){
+		var bp = document.createElement('script');
+		var curProtocol = window.location.protocol.split(':')[0];
+		if (curProtocol === 'https') {
+			bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+		}
+		else {
+			bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+		}
+		var s = document.getElementsByTagName("script")[0];
+		s.parentNode.insertBefore(bp, s);
+	})();
+	</script>
+	
+	<!--Google SEO-->
+	<meta name="google-site-verification" content="eQEfd78WjFtLEjkKijFZOBmGhY2J4CI_qGL_RX8IUEs" />
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+    <div id="wrap">
+        <header id="header">
+    <div id="header-outer" class="outer">
+        <div class="container">
+            <div class="container-inner">
+                <div id="header-title">
+                    <h1 class="logo-wrap">
+                        <a href="/" class="logo"></a>
+                    </h1>
+                    
+                        <h2 class="subtitle-wrap">
+                            <p class="subtitle">胡尔摩斯</p>
+                        </h2>
+                    
+                </div>
+                <div id="header-inner" class="nav-container">
+                    <a id="main-nav-toggle" class="nav-icon fa fa-bars"></a>
+                    <div class="nav-container-inner">
+                        <ul id="main-nav">
+                            
+                                <li class="main-nav-list-item" >
+                                    <a class="main-nav-list-link" href="/">主页</a>
+                                </li>
+                            
+                                        <ul class="main-nav-list"><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/DOCKER/">DOCKER</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/ES/">ES</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/HTTP/">HTTP</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/JAVA/">JAVA</a><ul class="main-nav-list-child"><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/JAVA/JSOUP/">JSOUP</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/JAVA/JVM/">JVM</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/JAVA/NIO/">NIO</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/JAVA/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/JAVA/%E9%94%81/">锁</a></li></ul></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/MICROSERVICE/">MICROSERVICE</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/MQ/">MQ</a><ul class="main-nav-list-child"><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/MQ/RabbitMQ/">RabbitMQ</a></li></ul></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/MYBATIS/">MYBATIS</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/MYSQL/">MYSQL</a><ul class="main-nav-list-child"><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/MYSQL/%E4%BC%98%E5%8C%96/">优化</a></li></ul></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/NGINX/">NGINX</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/SPRING/">SPRING</a><ul class="main-nav-list-child"><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/SPRING/SPRING-SECURITY/">SPRING SECURITY</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/SPRING/SPRINGBOOT/">SPRINGBOOT</a></li></ul></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/SSO/">SSO</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/TCP/">TCP</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/%E6%9D%82%E9%A1%B9/">杂项</a></li></ul>
+                                    
+                        </ul>
+                        <nav id="sub-nav">
+                            <div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="搜索" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="想要查找什么..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+        <div class="container">
+            <div class="main-body container-inner">
+                <div class="main-body-inner">
+                    <section id="main">
+                        <div class="main-body-header">
+    <h1 class="header">
+    
+    <a class="page-title-link" href="/categories/JAVA/">JAVA</a><i class="icon fa fa-angle-right"></i><a class="page-title-link" href="/categories/JAVA/JVM/">JVM</a>
+    </h1>
+</div>
+
+                        <div class="main-body-content">
+                            <article id="post-java/java-cms-g1" class="article article-single article-type-post" itemscope itemprop="blogPost">
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+    
+        <h1 class="article-title" itemprop="name">
+        【JVM从小白学成大佬】8.弄明白CMS和G1，就靠这一篇了
+        </h1>
+    
+
+            </header>
+        
+        
+            <div class="article-meta">
+                
+    <div class="article-date">
+      <i class="fa fa-calendar"></i>
+      <a href="/2019/95270314183311/" class="article-date">
+         <time datetime="2019-10-25T10:33:11.000Z" itemprop="datePublished">2019-10-25</time>
+      </a>
+    </div>
+
+
+                
+
+                
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/JAVA/" rel="tag">JAVA</a>, <a class="tag-link" href="/tags/JVM/" rel="tag">JVM</a>
+    </div>
+
+                
+   <span id="/2019/95270314183311/" class="leancloud-visitors" data-flag-title="【JVM从小白学成大佬】8.弄明白CMS和G1，就靠这一篇了">
+   <i class="fa fa-eye"></i>
+   <span class="post-meta-item-text">阅读: </span>
+   <i class="leancloud-visitors-count">-</i>
+   </span>
+
+
+                
+   <div class="article-counter">
+      <i class="fa fa-file-word-o"></i>
+      <span class="post-count-item-text">字数: </span>
+      <span class="post-count">4.1k</span>
+      <!-- 
+	  <i class="fa fa-clock-o"></i>
+      <span class="post-time-item-text">阅读时长: </span>
+      <span class="post-count">15 分钟 </span>
+	  -->
+   </div>
+
+
+            </div>
+        
+        
+        <div class="article-entry" itemprop="articleBody">
+            <p>在开始介绍CMS和G1前，我们可以剧透几点：</p>
+<ul>
+<li>根据不同分代的特点，收集器可能不同。有些收集器可以同时用于新生代和老年代，而有些时候，则需要分别为新生代或老年代选用合适的收集器。一般来说，新生代收集器的收集频率较高，应选用性能高效的收集器；而老年代收集器收集次数相对较少，对空间较为敏感，应当避免选择基于复制算法的收集器。</li>
+<li>在垃圾收集执行的时刻，应用程序需要暂停运行。</li>
+<li>可以串行收集，也可以并行收集。</li>
+<li>如果能做到并发收集（应用程序不必暂停），那绝对是很妙的事情。</li>
+<li>如果收集行为可控，那也是很妙的事情。</li>
+</ul>
+<p>CMS和G1作为垃圾收集器里的大杀器，是需要好好弄明白的，而且面试中也经常被问到。</p>
+<p>希望大家带着下面的问题进行阅读，有目标的阅读，收获更多:</p>
+<ol>
+<li>为什么没有一种牛逼的收集器像银弹一样适配所有场景？</li>
+<li>CMS的优点、缺点、适用场景？</li>
+<li>为什么CMS只能用作老年代收集器，而不能应用在新生代的收集？</li>
+<li>G1的优点、缺点、适用场景？</li>
+</ol>
+<h4 id="1-CMS收集器"><a href="#1-CMS收集器" class="headerlink" title="1 CMS收集器"></a>1 CMS收集器</h4><p>CMS（Concurrent Mark Sweep）收集器是一种以获取最短回收停顿时间为目标的收集器。这是因为CMS收集器工作时，GC工作线程与用户线程可以并发执行，以此来达到降低收集停顿时间的目的。</p>
+<p>CMS收集器仅作用于老年代的收集，是基于标记-清除算法的，它的运作过程分为4个步骤：</p>
+<ul>
+<li>初始标记（CMS initial mark）</li>
+<li>并发标记（CMS concurrent mark）</li>
+<li>重新标记（CMS remark）</li>
+<li>并发清除（CMS concurrent sweep）</li>
+</ul>
+<p>其中，初始标记、重新标记这两个步骤仍然需要Stop-the-world。初始标记仅仅只是标记一下GC Roots能直接关联到的对象，速度很快，并发标记阶段就是进行GC Roots Tracing的过程，而重新标记阶段则是为了修正并发标记期间因用户程序继续运作而导致标记产生变动的那一部分对象的标记记录，这个阶段的停顿时间一般会比初始阶段稍长一些，但远比并发标记的时间短。</p>
+<blockquote>
+<p>CMS以流水线方式拆分了收集周期，将耗时长的操作单元保持与应用线程并发执行。只将那些必需STW才能执行的操作单元单独拎出来，控制这些单元在恰当的时机运行，并能保证仅需短暂的时间就可以完成。这样，在整个收集周期内，只有两次短暂的暂停（初始标记和重新标记），达到了近似并发的目的。</p>
+</blockquote>
+<p>CMS收集器优点：</p>
+<ul>
+<li>并发收集</li>
+<li>低停顿。</li>
+</ul>
+<p>CMS收集器缺点：</p>
+<ul>
+<li>CMS收集器对CPU资源非常敏感。</li>
+<li>CMS收集器无法处理浮动垃圾（Floating Garbage）。</li>
+<li>CMS收集器是基于标记-清除算法，该算法的缺点都有。</li>
+</ul>
+<p>CMS收集器之所以能够做到并发，根本原因在于采用基于“标记-清除”的算法并对算法过程进行了细粒度的分解。前面篇章介绍过标记-清除算法将产生大量的内存碎片这对新生代来说是难以接受的，因此新生代的收集器并未提供CMS版本。</p>
+<p>另外要补充一点，JVM在暂停的时候，需要选准一个时机。由于JVM系统运行期间的复杂性，不可能做到随时暂停，因此引入了安全点的概念。</p>
+<h5 id="安全点-Safepoint"><a href="#安全点-Safepoint" class="headerlink" title="安全点(Safepoint)"></a>安全点(Safepoint)</h5><p>安全点，即程序执行时并非在所有地方都能停顿下来开始GC，只有在到达安全点时才能暂停。Safepoint的选定既不能太少以至于让GC等待时间太长，也不能过于频繁以致于过分增大运行时的负荷。</p>
+<p>安全点的初始目的并不是让其他线程停下，而是找到一个稳定的执行状态。在这个执行状态下，Java虚拟机的堆栈不会发生变化。这么一来，垃圾回收器便能够“安全”地执行可达性分析。只要不离开这个安全点，Java虚拟机便能够在垃圾回收的同时，继续运行这段本地代码。</p>
+<p>程序运行时并非在所有地方都能停顿下来开始GC，只有在到达安全点时才能暂停。安全点的选定基本上是以程序“是否具有让程序长时间执行的特征”为标准进行选定的。“长时间执行”的最明显特征就是指令序列复用，例如方法调用、循环跳转、异常跳转等，所以具有这些功能的指令才会产生Safepoint。</p>
+<p>对于安全点，另一个需要考虑的问题就是如何在GC发生时让所有线程（这里不包括执行JNI调用的线程）都“跑”到最近的安全点上再停顿下来。</p>
+<p>两种解决方案：</p>
+<ul>
+<li><p>抢先式中断（Preemptive Suspension）<br>抢先式中断不需要线程的执行代码主动去配合，在GC发生时，首先把所有线程全部中断，如果发现有线程中断的地方不在安全点上，就恢复线程，让它“跑”到安全点上。现在几乎没有虚拟机采用这种方式来暂停线程从而响应GC事件。</p>
+</li>
+<li><p>主动式中断（Voluntary Suspension）<br>主动式中断的思想是当GC需要中断线程的时候，不直接对线程操作，仅仅简单地设置一个标志，各个线程执行时主动去轮询这个标志，发现中断标志为真时就自己中断挂起。轮询标志的地方和安全点是重合的，另外再加上创建对象需要分配内存的地方。</p>
+</li>
+</ul>
+<h5 id="安全区域"><a href="#安全区域" class="headerlink" title="安全区域"></a>安全区域</h5><p>指在一段代码片段中，引用关系不会发生变化。在这个区域中任意地方开始GC都是安全的。也可以把Safe Region看作是被扩展了的Safepoint。</p>
+<h4 id="2-G1收集器"><a href="#2-G1收集器" class="headerlink" title="2 G1收集器"></a>2 G1收集器</h4><p>G1重新定义了堆空间，打破了原有的分代模型，将堆划分为一个个区域。这么做的目的是在进行收集时不必在全堆范围内进行，这是它最显著的特点。区域划分的好处就是带来了停顿时间可预测的收集模型：用户可以指定收集操作在多长时间内完成。即G1提供了接近实时的收集特性。</p>
+<p>G1与CMS的特征对比如下：</p>
+<table>
+<thead>
+<tr>
+<th>特征</th>
+<th>G1</th>
+<th>CMS</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>并发和分代</td>
+<td>是</td>
+<td>是</td>
+</tr>
+<tr>
+<td>最大化释放堆内存</td>
+<td>是</td>
+<td>否</td>
+</tr>
+<tr>
+<td>低延时</td>
+<td>是</td>
+<td>是</td>
+</tr>
+<tr>
+<td>吞吐量</td>
+<td>高</td>
+<td>低</td>
+</tr>
+<tr>
+<td>压实</td>
+<td>是</td>
+<td>否</td>
+</tr>
+<tr>
+<td>可预测性</td>
+<td>强</td>
+<td>弱</td>
+</tr>
+<tr>
+<td>新生代和老年代的物理隔离</td>
+<td>否</td>
+<td>是</td>
+</tr>
+</tbody></table>
+<p>G1具备如下特点：</p>
+<ul>
+<li>并行与并发：G1能充分利用多CPU、多核环境下的硬件优势，使用多个CPU来缩短Stop-the-world停顿的时间，部分其他收集器原来需要停顿Java线程执行的GC操作，G1收集器仍然可以通过并发的方式让Java程序继续运行。</li>
+<li>分代收集</li>
+<li>空间整合：与CMS的标记-清除算法不同，G1从整体来看是基于标记-整理算法实现的收集器，从局部（两个Region之间）上来看是基于“复制”算法实现的。但无论如何，这两种算法都意味着G1运作期间不会产生内存空间碎片，收集后能提供规整的可用内存。这种特性有利于程序长时间运行，分配大对象时不会因为无法找到连续内存空间而提前触发下一次GC。</li>
+<li>可预测的停顿：这是G1相对于CMS的一个优势，降低停顿时间是G1和CMS共同的关注点。</li>
+</ul>
+<p>在G1之前的其他收集器进行收集的范围都是整个新生代或者老年代，而G1不再是这样。在堆的结构设计时，G1打破了以往将收集范围固定在新生代或老年代的模式，G1将堆分成许多相同大小的区域单元，每个单元称为Region。Region是一块地址连续的内存空间，G1模块的组成如下图所示：</p>
+<p><img src="/2019/95270314183311/g1.png" alt="G1堆" title="点击放大"></p>
+<p>G1收集器将整个Java堆划分为多个大小相等的独立区域（Region），虽然还保留有新生代和老年代的概念，但新生代和老年代不再是物理隔离的了，它们都是一部分Region（不需要连续）的集合。Region的大小是一致的，数值是在1M到32M字节之间的一个2的幂值数，JVM会尽量划分2048个左右、同等大小的Region，这一点可以参看如下源码。其实这个数字既可以手动调整，G1也会根据堆大小自动进行调整。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">ifndef</span> SHARE_VM_GC_G1_HEAPREGIONBOUNDS_HPP</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> SHARE_VM_GC_G1_HEAPREGIONBOUNDS_HPP</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"memory/allocation.hpp"</span></span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">HeapRegionBounds</span> :</span> <span class="keyword">public</span> AllStatic &#123;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">  <span class="comment">// Minimum region size; we won't go lower than that.</span></span><br><span class="line">  <span class="comment">// We might want to decrease this in the future, to deal with small</span></span><br><span class="line">  <span class="comment">// heaps a bit more efficiently.</span></span><br><span class="line">  <span class="keyword">static</span> <span class="keyword">const</span> <span class="keyword">size_t</span> MIN_REGION_SIZE = <span class="number">1024</span> * <span class="number">1024</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Maximum region size; we don't go higher than that. There's a good</span></span><br><span class="line">  <span class="comment">// reason for having an upper bound. We don't want regions to get too</span></span><br><span class="line">  <span class="comment">// large, otherwise cleanup's effectiveness would decrease as there</span></span><br><span class="line">  <span class="comment">// will be fewer opportunities to find totally empty regions after</span></span><br><span class="line">  <span class="comment">// marking.</span></span><br><span class="line">  <span class="keyword">static</span> <span class="keyword">const</span> <span class="keyword">size_t</span> MAX_REGION_SIZE = <span class="number">32</span> * <span class="number">1024</span> * <span class="number">1024</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// The automatic region size calculation will try to have around this</span></span><br><span class="line">  <span class="comment">// many regions in the heap (based on the min heap size).</span></span><br><span class="line">  <span class="keyword">static</span> <span class="keyword">const</span> <span class="keyword">size_t</span> TARGET_REGION_NUMBER = <span class="number">2048</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">  <span class="function"><span class="keyword">static</span> <span class="keyword">inline</span> size_t <span class="title">min_size</span><span class="params">()</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">static</span> <span class="keyword">inline</span> size_t <span class="title">max_size</span><span class="params">()</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">static</span> <span class="keyword">inline</span> size_t <span class="title">target_number</span><span class="params">()</span></span>;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span> <span class="comment">// SHARE_VM_GC_G1_HEAPREGIONBOUNDS_HPP</span></span></span><br></pre></td></tr></table></figure>
+
+<p>G1收集器之所以能建立可预测的停顿时间模型，是因为它可以有计划地避免在整个Java堆中进行全区域的垃圾收集。G1会通过一个合理的计算模型，计算出每个Region的收集成本并量化，这样一来，收集器在给定了“停顿”时间限制的情况下，总是能选择一组恰当的Regions作为收集目标，让其收集开销满足这个限制条件，以此达到实时收集的目的。</p>
+<p>对于打算从CMS或者ParallelOld收集器迁移过来的应用，按照<a href="https://www.oracle.com/technetwork/java/javase/tech/g1-intro-jsp-135488.html" target="_blank" rel="noopener">官方</a>的建议，如果发现符合如下特征，可以考虑更换成G1收集器以追求更佳性能：</p>
+<ul>
+<li>实时数据占用了超过半数的堆空间；</li>
+<li>对象分配率或“晋升”的速度变化明显；</li>
+<li>期望消除耗时较长的GC或停顿（超过0.5——1秒）。</li>
+</ul>
+<blockquote>
+<p>原文如下：<br>Applications running today with either the CMS or the ParallelOld garbage collector would benefit switching to G1 if the application has one or more of the following traits.</p>
+<ul>
+<li>More than 50% of the Java heap is occupied with live data.</li>
+<li>The rate of object allocation rate or promotion varies significantly.</li>
+<li>Undesired long garbage collection or compaction pauses (longer than 0.5 to 1 second)</li>
+</ul>
+</blockquote>
+<p>G1收集的运作过程大致如下：</p>
+<ul>
+<li>初始标记（Initial Marking）：仅仅只是标记一下GC Roots能直接关联到的对象，并且修改TAMS（Next Top at Mark Start）的值，让下一阶段用户程序并发运行时，能在正确可用的Region中创建新对象，这阶段需要停顿线程，但耗时很短。</li>
+<li>并发标记（Concurrent Marking）：是从GC Roots开始堆中对象进行可达性分析，找出存活的对象，这阶段耗时较长，但可与用户程序并发执行。</li>
+<li>最终标记（Final Marking）：是为了修正并发标记期间因用户程序继续运作而导致标记产生变动的那一部分标记记录，虚拟机将这段时间对象变化记录在线程Remembered Set Logs里面，最终标记阶段需要把Remembered Set Logs的数据合并到Remembered Set中，这阶段需要停顿线程，但是可并行执行。</li>
+<li>筛选回收（Live Data Counting and Evacuation）：首先对各个Region的回收价值和成本进行排序，根据用户所期望的GC停顿时间来制定回收计划。这个阶段也可以做到与用户程序一起并发执行，但是因为只回收一部分Region，时间是用户可控制的，而且停顿用户线程将大幅提高收集效率。</li>
+</ul>
+<p>全局变量和栈中引用的对象是可以列入根集合的，这样在寻找垃圾时，就可以从根集合出发扫描堆空间。在G1中，引入了一种新的能加入根集合的类型，就是记忆集（Remembered Set）。Remembered Sets（也叫RSets）用来跟踪对象引用。G1的很多开源都是源自Remembered Set，例如，它通常约占Heap大小的20%或更高。并且，我们进行对象复制的时候，因为需要扫描和更改Card Table的信息，这个速度影响了复制的速度，进而影响暂停时间。</p>
+<p><img src="/2019/95270314183311/pic1.jpg" alt="记忆集" title="点击放大"></p>
+<h5 id="卡表（Card-Table）"><a href="#卡表（Card-Table）" class="headerlink" title="卡表（Card Table）"></a>卡表（Card Table）</h5><p>有个场景，老年代的对象可能引用新生代的对象，那标记存活对象的时候，需要扫描老年代中的所有对象。因为该对象拥有对新生代对象的引用，那么这个引用也会被称为GC Roots。那不是得又做全堆扫描？成本太高了吧。</p>
+<p>HotSpot给出的解决方案是一项叫做卡表（Card Table）的技术。该技术将整个堆划分为一个个大小为512字节的卡，并且维护一个卡表，用来存储每张卡的一个标识位。这个标识位代表对应的卡是否可能存有指向新生代对象的引用。如果可能存在，那么我们就认为这张卡是脏的。</p>
+<p>在进行Minor GC的时候，我们便可以不用扫描整个老年代，而是在卡表中寻找脏卡，并将脏卡中的对象加入到Minor GC的GC Roots里。当完成所有脏卡的扫描之后，Java虚拟机便会将所有脏卡的标识位清零。</p>
+<p>想要保证每个可能有指向新生代对象引用的卡都被标记为脏卡，那么Java虚拟机需要截获每个引用型实例变量的写操作，并作出对应的写标识位操作。</p>
+<p>卡表能用于减少老年代的全堆空间扫描，这能很大的提升GC效率。</p>
+<p>我们可以看下官方文档对G1的展望（这段英文描述比较简单，我就不翻译了）：</p>
+<blockquote>
+<p>Future:<br>G1 is planned as the long term replacement for the Concurrent Mark-Sweep Collector (CMS). Comparing G1 with CMS, there are differences that make G1 a better solution. One difference is that G1 is a compacting collector.<br>G1 compacts sufficiently to completely avoid the use of fine-grained free lists for allocation, and instead relies on regions. This considerably simplifies parts of the collector, and mostly eliminates potential fragmentation issues. Also, G1 offers more predictable garbage collection pauses than the CMS collector, and allows users to specify desired pause targets.</p>
+</blockquote>
+<h4 id="3-总结"><a href="#3-总结" class="headerlink" title="3 总结"></a>3 总结</h4><p>查了下度娘有关G1的文章，绝大部分文章对G1的介绍都是停留在JDK7或更早期的实现很多结论已经存在较大偏差了，甚至一些过去的GC选项已经不再推荐使用。举个例子，JDK9中JVM和GC日志进行了重构，如PrintGCDetails已经被标记为废弃，而PrintGCDateStamps已经被移除，指定它会导致JVM无法启动。</p>
+<p>本文对CMS和G1的介绍绝大部分内容也是基于JDK7，新版本中的内容有一点介绍，倒没做过多介绍（本人对新版本JVM还没有深入研究），后面有机会可以再出专门的文章来重点介绍。</p>
+<h4 id="4-参考"><a href="#4-参考" class="headerlink" title="4 参考"></a>4 参考</h4><p>《深入理解Java虚拟机》《HotSpot实战》《极客时间专栏》</p>
+<blockquote>
+<p>本文转载自<a href="https://www.cnblogs.com/heyonggang/" target="_blank" rel="noopener">猿人谷</a>博客，原文连接点<a href="https://www.cnblogs.com/heyonggang/p/11718170.html" target="_blank" rel="noopener">这里</a>，版权归原作者所有。<br>微信公众号：<a href="yuanrengu.jpg">猿人谷</a><br>如果您认为阅读这篇博客让您有些收获，不妨点击一下右下角的【推荐】<br>如果您希望与我交流互动，欢迎关注微信公众号<br>本文版权归作者和博客园共有，欢迎转载，但未经作者同意必须保留此段声明，且在文章页面明显位置给出原文连接。</p>
+</blockquote>
+
+        </div>
+        <footer class="article-footer">
+            
+
+    <div class="bdsharebuttonbox">
+    <a href="#" class="bds_more" data-cmd="more">分享到：</a>
+    <a href="#" class="bds_qzone" data-cmd="qzone" title="分享到QQ空间">QQ空间</a>
+    <a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博">新浪微博</a>
+    <a href="#" class="bds_tqq" data-cmd="tqq" title="分享到腾讯微博">腾讯微博</a>
+    <a href="#" class="bds_renren" data-cmd="renren" title="分享到人人网">人人网</a>
+    <a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信">微信</a>
+</div>
+<script>
+window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"16"},"share":{"bdSize":16}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='//bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+<style>
+    .bdshare_popup_box {
+        border-radius: 4px;
+        border: #e1e1e1 solid 1px;
+    }
+    .bdshare-button-style0-16 a,
+    .bdshare-button-style0-16 .bds_more {
+        padding-left: 20px;
+        margin: 6px 10px 6px 0;
+    }
+    .bdshare_dialog_list a,
+    .bdshare_popup_list a,
+    .bdshare_popup_bottom a {
+        font-family: 'Microsoft Yahei';
+    }
+    .bdshare_popup_top {
+        display: none;
+    }
+    .bdshare_popup_bottom {
+        height: auto;
+        padding: 5px;
+    }
+</style>
+
+
+
+        </footer>
+    </div>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "author": {
+            "@type": "Person",
+            "name": "胡尔摩斯"
+        },
+        "headline": "【JVM从小白学成大佬】8.弄明白CMS和G1，就靠这一篇了",
+        "image": "http://huermosi.xyz/2019/95270314183311/g1.png",
+        "keywords": "JAVA JVM",
+        "genre": "JAVA JVM",
+        "datePublished": "2019-10-25",
+        "dateCreated": "2019-10-25",
+        "dateModified": "2021-04-08",
+        "url": "http://huermosi.xyz/2019/95270314183311/",
+        "description": "在开始介绍CMS和G1前，我们可以剧透几点：
+
+根据不同分代的特点，收集器可能不同。有些收集器可以同时用于新生代和老年代，而有些时候，则需要分别为新生代或老年代选用合适的收集器。一般来说，新生代收集器的收集频率较高，应选用性能高效的收集器；而老年代收集器收集次数相对较少，对空间较为敏感，应当避免选择基于复制算法的收集器。
+在垃圾收集执行的时刻，应用程序需要暂停运行。
+可以串行收集，也可以并行收集。",
+        "wordCount": 528
+    }
+</script>
+
+</article>
+
+    <section id="comments">
+    
+        <!--  -->
+    <!-- Valine -->
+    <!-- <div class="vcomments"></div> -->
+<!--  -->
+
+    
+    </section>
+
+
+
+                        </div>
+                    </section>
+                    <aside id="sidebar">
+    <a class="sidebar-toggle" title="Expand Sidebar"><i class="toggle icon"></i></a>
+    <div class="sidebar-top">
+        <p>关注我 :</p>
+        <ul class="social-links">
+            
+                
+                <li>
+                    <a class="social-tooltip" title="toutiao" href="https://www.toutiao.com/c/user/79188316021/" target="_blank" rel="noopener">
+						
+							<i class="icon fa fa-tumblr"></i>
+						
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a class="social-tooltip" title="xigua" href="https://www.ixigua.com/home/79188316021/" target="_blank" rel="noopener">
+						
+							<i class="icon fa fa-youtube-play"></i>
+						
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a class="social-tooltip" title="rss" href="/atom.xml" target="_blank" rel="noopener">
+						
+							<i class="icon fa fa-rss"></i>
+						
+                    </a>
+                </li>
+                
+            
+        </ul>
+    </div>
+    
+        
+<nav id="article-nav">
+    
+        <a href="/2019/95270310102638/" id="article-nav-newer" class="article-nav-link-wrap">
+        <strong class="article-nav-caption">下一篇</strong>
+        <p class="article-nav-title">
+        
+            MySQL 5.7 JSON 数据类型使用总结
+        
+        </p>
+        <i class="icon fa fa-chevron-right" id="icon-chevron-right"></i>
+    </a>
+    
+    
+        <a href="/2019/20200216210659/" id="article-nav-older" class="article-nav-link-wrap">
+        <strong class="article-nav-caption">上一篇</strong>
+        <p class="article-nav-title">解决Docker容器内挂载目录无权限问题：cannot open directory. Permission denied</p>
+        <i class="icon fa fa-chevron-left" id="icon-chevron-left"></i>
+        </a>
+    
+</nav>
+
+    
+    <div class="widgets-container">
+        
+            
+                
+
+            
+                
+    <div class="widget-wrap">
+        <h3 class="widget-title">最新文章</h3>
+        <div class="widget">
+            <ul id="recent-post" class="">
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2021/9527888015/" class="thumbnail">
+    
+    
+        <span style="background-image:url(/2021/9527888015/1.png)" alt="SqlSessionTemplate是如何保证MyBatis中SqlSession的线程安全的" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/MYBATIS/">MYBATIS</a></p>
+                            <p class="item-title"><a href="/2021/9527888015/" class="title">SqlSessionTemplate是如何保证MyBatis中SqlSession的线程安全的</a></p>
+                            <p class="item-date"><time datetime="2021-04-15T09:43:20.000Z" itemprop="datePublished">2021-04-15</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2021/9527202104222212000/" class="thumbnail">
+    
+    
+        <span style="background-image:url(/2021/9527202104222212000/1.png)" alt="有点狠有点猛，我用责任链模式重构了业务代码" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/JAVA/">JAVA</a></p>
+                            <p class="item-title"><a href="/2021/9527202104222212000/" class="title">有点狠有点猛，我用责任链模式重构了业务代码</a></p>
+                            <p class="item-date"><time datetime="2021-04-07T13:28:07.000Z" itemprop="datePublished">2021-04-07</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2021/952720210072154/" class="thumbnail">
+    
+    
+        <span style="background-image:url(/2021/952720210072154/1.png)" alt="SpringBoot国际化实战，实现语言的自由切换" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/SPRING/">SPRING</a><i class="icon fa fa-angle-right"></i><a class="article-category-link" href="/categories/SPRING/SPRINGBOOT/">SPRINGBOOT</a></p>
+                            <p class="item-title"><a href="/2021/952720210072154/" class="title">SpringBoot国际化实战，实现语言的自由切换</a></p>
+                            <p class="item-date"><time datetime="2021-04-07T13:02:00.000Z" itemprop="datePublished">2021-04-07</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2021/9527202101-07%2021:45:05/" class="thumbnail">
+    
+    
+        <span style="background-image:url(/2021/9527202101-07%2021:45:05/1.png)" alt="MySQL的万字总结（缓存，索引，Explain，事务，redo日志等）" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/MYSQL/">MYSQL</a></p>
+                            <p class="item-title"><a href="/2021/9527202101-07%2021:45:05/" class="title">MySQL的万字总结（缓存，索引，Explain，事务，redo日志等）</a></p>
+                            <p class="item-date"><time datetime="2021-01-07T13:45:05.000Z" itemprop="datePublished">2021-01-07</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2020/952720210401151900/" class="thumbnail">
+    
+    
+        <span style="background-image:url(/2020/952720210401151900/1.png)" alt="面试官：你是如何评估一个线程池需要设置多少个线程" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/JAVA/">JAVA</a><i class="icon fa fa-angle-right"></i><a class="article-category-link" href="/categories/JAVA/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a></p>
+                            <p class="item-title"><a href="/2020/952720210401151900/" class="title">面试官：你是如何评估一个线程池需要设置多少个线程</a></p>
+                            <p class="item-date"><time datetime="2020-05-11T07:18:33.000Z" itemprop="datePublished">2020-05-11</time></p>
+                        </div>
+                    </li>
+                
+            </ul>
+        </div>
+    </div>
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">分类</h3>
+        <div class="widget">
+            <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/DOCKER/">DOCKER</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/ES/">ES</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/HTTP/">HTTP</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/JAVA/">JAVA</a><span class="category-list-count">18</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/JAVA/JSOUP/">JSOUP</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/JAVA/JVM/">JVM</a><span class="category-list-count">9</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/JAVA/NIO/">NIO</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/JAVA/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/JAVA/%E9%94%81/">锁</a><span class="category-list-count">2</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/MICROSERVICE/">MICROSERVICE</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/MQ/">MQ</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/MQ/RabbitMQ/">RabbitMQ</a><span class="category-list-count">1</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/MYBATIS/">MYBATIS</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/MYSQL/">MYSQL</a><span class="category-list-count">5</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/MYSQL/%E4%BC%98%E5%8C%96/">优化</a><span class="category-list-count">1</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/NGINX/">NGINX</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/SPRING/">SPRING</a><span class="category-list-count">4</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/SPRING/SPRING-SECURITY/">SPRING SECURITY</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/SPRING/SPRINGBOOT/">SPRINGBOOT</a><span class="category-list-count">1</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/SSO/">SSO</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/TCP/">TCP</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%9D%82%E9%A1%B9/">杂项</a><span class="category-list-count">1</span></li></ul>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">归档</h3>
+        <div class="widget">
+            <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">2021-04</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">2021-01</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">2020-05</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">2020-04</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">2020-03</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/02/">2020-02</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">2020-01</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">2019-12</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">2019-10</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/09/">2019-09</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">2019-08</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">2018-03</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">2018-02</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">2018-01</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">2017-08</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">2017-04</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">2017-03</a><span class="archive-list-count">5</span></li></ul>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-float">
+        <h3 class="widget-title">标签云</h3>
+        <div class="widget tagcloud">
+            <a href="/tags/BOOTFS/" style="font-size: 10px;">BOOTFS</a> <a href="/tags/BUILD/" style="font-size: 12px;">BUILD</a> <a href="/tags/COMMIT/" style="font-size: 10px;">COMMIT</a> <a href="/tags/COOKIE/" style="font-size: 10px;">COOKIE</a> <a href="/tags/DOCKER/" style="font-size: 18px;">DOCKER</a> <a href="/tags/DOCKERFILE/" style="font-size: 12px;">DOCKERFILE</a> <a href="/tags/ELASTICSEARCH/" style="font-size: 10px;">ELASTICSEARCH</a> <a href="/tags/ES/" style="font-size: 10px;">ES</a> <a href="/tags/EXPLAIN/" style="font-size: 10px;">EXPLAIN</a> <a href="/tags/HTTP/" style="font-size: 10px;">HTTP</a> <a href="/tags/IO/" style="font-size: 10px;">IO</a> <a href="/tags/JAVA/" style="font-size: 20px;">JAVA</a> <a href="/tags/JMM/" style="font-size: 10px;">JMM</a> <a href="/tags/JSON/" style="font-size: 10px;">JSON</a> <a href="/tags/JSOUP/" style="font-size: 10px;">JSOUP</a> <a href="/tags/JVM/" style="font-size: 18px;">JVM</a> <a href="/tags/JWT/" style="font-size: 10px;">JWT</a> <a href="/tags/MICROSERVICE/" style="font-size: 12px;">MICROSERVICE</a> <a href="/tags/MYBATIS/" style="font-size: 12px;">MYBATIS</a> <a href="/tags/MYSQL/" style="font-size: 16px;">MYSQL</a> <a href="/tags/NGINX/" style="font-size: 12px;">NGINX</a> <a href="/tags/NIO/" style="font-size: 10px;">NIO</a> <a href="/tags/REDO/" style="font-size: 10px;">REDO</a> <a href="/tags/REGISTRY/" style="font-size: 10px;">REGISTRY</a> <a href="/tags/RESTFUL/" style="font-size: 10px;">RESTFUL</a> <a href="/tags/ROOTFS/" style="font-size: 10px;">ROOTFS</a> <a href="/tags/ReentrantLock/" style="font-size: 10px;">ReentrantLock</a> <a href="/tags/SESSION/" style="font-size: 10px;">SESSION</a> <a href="/tags/SPRING/" style="font-size: 16px;">SPRING</a> <a href="/tags/SPRING-BOOT/" style="font-size: 10px;">SPRING BOOT</a> <a href="/tags/SPRING-SECURITY/" style="font-size: 10px;">SPRING SECURITY</a> <a href="/tags/SPRINGBOOT/" style="font-size: 10px;">SPRINGBOOT</a> <a href="/tags/SQLSESSION/" style="font-size: 10px;">SQLSESSION</a> <a href="/tags/SSO/" style="font-size: 12px;">SSO</a> <a href="/tags/TCP/" style="font-size: 16px;">TCP</a> <a href="/tags/THREAD/" style="font-size: 12px;">THREAD</a> <a href="/tags/TOKEN/" style="font-size: 10px;">TOKEN</a> <a href="/tags/VOLATILE/" style="font-size: 10px;">VOLATILE</a> <a href="/tags/ZOOKEEPER/" style="font-size: 10px;">ZOOKEEPER</a> <a href="/tags/notify/" style="font-size: 10px;">notify</a> <a href="/tags/rabbitmq/" style="font-size: 10px;">rabbitmq</a> <a href="/tags/wait/" style="font-size: 10px;">wait</a> <a href="/tags/%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B/" style="font-size: 14px;">三次握手</a> <a href="/tags/%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5/" style="font-size: 10px;">主从同步</a> <a href="/tags/%E4%B9%90%E8%A7%82%E9%94%81/" style="font-size: 10px;">乐观锁</a> <a href="/tags/%E4%BA%8B%E5%8A%A1/" style="font-size: 10px;">事务</a> <a href="/tags/%E4%BB%A3%E7%90%86/" style="font-size: 10px;">代理</a> <a href="/tags/%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B/" style="font-size: 10px;">内存模型</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" style="font-size: 10px;">分布式锁</a> <a href="/tags/%E5%8D%95%E4%BE%8B%E6%A8%A1%E5%BC%8F/" style="font-size: 10px;">单例模式</a> <a href="/tags/%E5%8D%95%E7%82%B9%E7%99%BB%E5%BD%95/" style="font-size: 10px;">单点登录</a> <a href="/tags/%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86/" style="font-size: 10px;">反向代理</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 10px;">可见性</a> <a href="/tags/%E5%91%BD%E4%BB%A4/" style="font-size: 10px;">命令</a> <a href="/tags/%E5%9B%9B%E6%AC%A1%E6%8C%A5%E6%89%8B/" style="font-size: 10px;">四次挥手</a> <a href="/tags/%E5%A4%8D%E5%88%B6/" style="font-size: 10px;">复制</a> <a href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" style="font-size: 10px;">多线程</a> <a href="/tags/%E5%AE%B9%E5%99%A8/" style="font-size: 10px;">容器</a> <a href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" style="font-size: 10px;">并发编程</a> <a href="/tags/%E5%BC%95%E7%94%A8/" style="font-size: 10px;">引用</a> <a href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" style="font-size: 12px;">微服务</a> <a href="/tags/%E6%82%B2%E8%A7%82%E9%94%81/" style="font-size: 10px;">悲观锁</a> <a href="/tags/%E6%8C%87%E4%BB%A4/" style="font-size: 10px;">指令</a> <a href="/tags/%E6%9E%B6%E6%9E%84/" style="font-size: 10px;">架构</a> <a href="/tags/%E6%9F%A5%E8%AF%A2%E6%95%88%E7%8E%87/" style="font-size: 10px;">查询效率</a> <a href="/tags/%E7%88%AC%E8%99%AB/" style="font-size: 10px;">爬虫</a> <a href="/tags/%E7%94%B5%E5%95%86/" style="font-size: 10px;">电商</a> <a href="/tags/%E7%9F%AD%E8%BF%9E%E6%8E%A5/" style="font-size: 10px;">短连接</a> <a href="/tags/%E7%B4%A2%E5%BC%95/" style="font-size: 10px;">索引</a> <a href="/tags/%E7%BA%BF%E7%A8%8B/" style="font-size: 10px;">线程</a> <a href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/" style="font-size: 10px;">线程池</a> <a href="/tags/%E8%81%8C%E8%B4%A3%E9%93%BE%E6%A8%A1%E5%BC%8F/" style="font-size: 10px;">职责链模式</a> <a href="/tags/%E8%AE%A2%E5%8D%95/" style="font-size: 10px;">订单</a> <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 10px;">设计模式</a> <a href="/tags/%E8%AF%BB%E5%86%99%E5%88%86%E7%A6%BB/" style="font-size: 10px;">读写分离</a> <a href="/tags/%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1/" style="font-size: 10px;">负载均衡</a> <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 10px;">运维</a> <a href="/tags/%E9%94%81/" style="font-size: 10px;">锁</a> <a href="/tags/%E9%95%9C%E5%83%8F/" style="font-size: 12px;">镜像</a> <a href="/tags/%E9%95%BF%E8%BF%9E%E6%8E%A5/" style="font-size: 10px;">长连接</a> <a href="/tags/%E9%9D%A2%E8%AF%95/" style="font-size: 10px;">面试</a>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">链接</h3>
+        <div class="widget">
+            <ul>
+                
+                    <li>
+                        <a href="https://www.cnblogs.com/heyonggang/" target="_blank" rel="noopener">猿人谷</a>
+                    </li>
+                
+                    <li>
+                        <a href="http://www.cnblogs.com/dolphin0520/" target="_blank" rel="noopener">Matrix海子</a>
+                    </li>
+                
+                    <li>
+                        <a href="https://www.cnblogs.com/wihainan/" target="_blank" rel="noopener">yweihainan</a>
+                    </li>
+                
+            </ul>
+        </div>
+    </div>
+
+
+            
+        
+    </div>
+</aside>
+
+                </div>
+            </div>
+        </div>
+        <footer id="footer">
+    <div class="container">
+        <div class="container-inner">
+            <a id="back-to-top" href="javascript:;"><i class="icon fa fa-angle-up"></i></a>
+            <div class="credit">
+                <h1 class="logo-wrap">
+                    <a href="/" class="logo"></a>
+                </h1>
+                <p>&copy; 2021 胡尔摩斯</p>
+                
+				<!--这一段是不蒜子的访问量统计脚本-->
+                <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+                <span id="busuanzi_container_site_pv">本站总访问量<span id="busuanzi_value_site_pv"></span>次 &nbsp;   </span>
+                <span id="busuanzi_container_site_uv">访客数<span id="busuanzi_value_site_uv"></span>人次</span>
+            </div>
+            <div class="footer-plugins">
+              
+    
+
+
+            </div>
+        </div>
+    </div>
+</footer>
+        
+    <!--  -->
+    <script src="//unpkg.com/valine"></script>
+    <script>
+        var GUEST = ['nick','mail','link'];
+        var meta = '';
+        meta = meta.split(',').filter(function (item) {
+            return GUEST.indexOf(item)>-1;
+        });
+        var avatarcdn = 'https://gravatar.loli.net/avatar/' == true;
+        new Valine({
+            el: '.vcomments',
+            notify: "",
+            verify: "",
+            appId: "XrfLUFS8GBEm6p58RABdM6Ch-gzGzoHsz",
+            appKey: "Wo4mK9i26qPw5TFP8TytPdMr",
+            placeholder: "Just Do It",
+            avatar:"identicon",
+            recordIP:"true",
+            visitor: "true"
+        });
+    </script>
+<!--  -->
+
+
+
+
+    
+        
+<script src="/libs/lightgallery/js/lightgallery.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-thumbnail.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-pager.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-autoplay.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-fullscreen.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-zoom.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-hash.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-share.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-video.min.js"></script>
+
+    
+    
+        
+<script src="/libs/justified-gallery/jquery.justifiedGallery.min.js"></script>
+
+    
+    
+
+    
+      <script data-ad-client="ca-pub-8167041820940565" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+
+    
+
+
+
+<!-- Custom Scripts -->
+
+<script src="/js/main.js"></script>
+
+
+    </div>
+</body>
+</html>

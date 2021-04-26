@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+
+    
+
+    
+    <title>说一下公平锁和非公平锁的区别？ | 胡尔摩斯</title>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="keywords" content="JAVA,锁,ReentrantLock,乐观锁,悲观锁" />
+    
+    <meta name="description" content="前言上次我们提到了乐观锁和悲观锁，那我们知道锁的类型还有很多种，我们今天简单聊一下，公平锁和非公平锁两口子，以及他们在我们代码中的实践。 正文开始聊之前，我先大概说一下他们两者的定义，帮大家回顾或者认识一下。 公平锁：多个线程按照申请锁的顺序去获得锁，线程会直接进入队列去排队，永远都是队列的第一位才能得到锁。 优点：所有的线程都能得到资源，不会饿死在队列中。 缺点：吞吐量会下降很多，队列里面除了第">
+<meta property="og:type" content="article">
+<meta property="og:title" content="说一下公平锁和非公平锁的区别？">
+<meta property="og:url" content="http://huermosi.xyz/2018/95270327100012/index.html">
+<meta property="og:site_name" content="胡尔摩斯">
+<meta property="og:description" content="前言上次我们提到了乐观锁和悲观锁，那我们知道锁的类型还有很多种，我们今天简单聊一下，公平锁和非公平锁两口子，以及他们在我们代码中的实践。 正文开始聊之前，我先大概说一下他们两者的定义，帮大家回顾或者认识一下。 公平锁：多个线程按照申请锁的顺序去获得锁，线程会直接进入队列去排队，永远都是队列的第一位才能得到锁。 优点：所有的线程都能得到资源，不会饿死在队列中。 缺点：吞吐量会下降很多，队列里面除了第">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://huermosi.xyz/2018/95270327100012/pic1.jpg">
+<meta property="article:published_time" content="2018-03-27T02:00:12.000Z">
+<meta property="article:modified_time" content="2021-04-08T08:49:31.568Z">
+<meta property="article:author" content="胡尔摩斯">
+<meta property="article:tag" content="JAVA">
+<meta property="article:tag" content="锁">
+<meta property="article:tag" content="ReentrantLock">
+<meta property="article:tag" content="乐观锁">
+<meta property="article:tag" content="悲观锁">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://huermosi.xyz/2018/95270327100012/pic1.jpg">
+    
+
+    
+        <link rel="alternate" href="/atom.xml" title="胡尔摩斯" type="application/atom+xml" />
+    
+
+    
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/libs/titillium-web/styles.css">
+
+    
+<link rel="stylesheet" href="/libs/source-code-pro/styles.css">
+
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    
+<script src="/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    
+    
+        
+<link rel="stylesheet" href="/libs/lightgallery/css/lightgallery.min.css">
+
+    
+    
+        
+<link rel="stylesheet" href="/libs/justified-gallery/justifiedGallery.min.css">
+
+    
+    
+    
+
+
+	
+	<!--百度统计-->
+	<script>
+	var _hmt = _hmt || [];
+	(function() {
+	  var hm = document.createElement("script");
+	  hm.src = "https://hm.baidu.com/hm.js?025104cd42fa406fd2c9f41125b6d7ce";
+	  var s = document.getElementsByTagName("script")[0]; 
+	  s.parentNode.insertBefore(hm, s);
+	})();
+	</script>
+	
+	<!--百度SEO-->
+	<script>
+	(function(){
+		var bp = document.createElement('script');
+		var curProtocol = window.location.protocol.split(':')[0];
+		if (curProtocol === 'https') {
+			bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+		}
+		else {
+			bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+		}
+		var s = document.getElementsByTagName("script")[0];
+		s.parentNode.insertBefore(bp, s);
+	})();
+	</script>
+	
+	<!--Google SEO-->
+	<meta name="google-site-verification" content="eQEfd78WjFtLEjkKijFZOBmGhY2J4CI_qGL_RX8IUEs" />
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+    <div id="wrap">
+        <header id="header">
+    <div id="header-outer" class="outer">
+        <div class="container">
+            <div class="container-inner">
+                <div id="header-title">
+                    <h1 class="logo-wrap">
+                        <a href="/" class="logo"></a>
+                    </h1>
+                    
+                        <h2 class="subtitle-wrap">
+                            <p class="subtitle">胡尔摩斯</p>
+                        </h2>
+                    
+                </div>
+                <div id="header-inner" class="nav-container">
+                    <a id="main-nav-toggle" class="nav-icon fa fa-bars"></a>
+                    <div class="nav-container-inner">
+                        <ul id="main-nav">
+                            
+                                <li class="main-nav-list-item" >
+                                    <a class="main-nav-list-link" href="/">主页</a>
+                                </li>
+                            
+                                        <ul class="main-nav-list"><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/DOCKER/">DOCKER</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/ES/">ES</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/HTTP/">HTTP</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/JAVA/">JAVA</a><ul class="main-nav-list-child"><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/JAVA/JSOUP/">JSOUP</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/JAVA/JVM/">JVM</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/JAVA/NIO/">NIO</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/JAVA/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/JAVA/%E9%94%81/">锁</a></li></ul></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/MICROSERVICE/">MICROSERVICE</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/MQ/">MQ</a><ul class="main-nav-list-child"><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/MQ/RabbitMQ/">RabbitMQ</a></li></ul></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/MYBATIS/">MYBATIS</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/MYSQL/">MYSQL</a><ul class="main-nav-list-child"><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/MYSQL/%E4%BC%98%E5%8C%96/">优化</a></li></ul></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/NGINX/">NGINX</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/SPRING/">SPRING</a><ul class="main-nav-list-child"><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/SPRING/SPRING-SECURITY/">SPRING SECURITY</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/SPRING/SPRINGBOOT/">SPRINGBOOT</a></li></ul></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/SSO/">SSO</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/TCP/">TCP</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/%E6%9D%82%E9%A1%B9/">杂项</a></li></ul>
+                                    
+                        </ul>
+                        <nav id="sub-nav">
+                            <div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="搜索" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="想要查找什么..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+        <div class="container">
+            <div class="main-body container-inner">
+                <div class="main-body-inner">
+                    <section id="main">
+                        <div class="main-body-header">
+    <h1 class="header">
+    
+    <a class="page-title-link" href="/categories/JAVA/">JAVA</a><i class="icon fa fa-angle-right"></i><a class="page-title-link" href="/categories/JAVA/%E9%94%81/">锁</a>
+    </h1>
+</div>
+
+                        <div class="main-body-content">
+                            <article id="post-java/java-fair-nonfair-lock" class="article article-single article-type-post" itemscope itemprop="blogPost">
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+    
+        <h1 class="article-title" itemprop="name">
+        说一下公平锁和非公平锁的区别？
+        </h1>
+    
+
+            </header>
+        
+        
+            <div class="article-meta">
+                
+    <div class="article-date">
+      <i class="fa fa-calendar"></i>
+      <a href="/2018/95270327100012/" class="article-date">
+         <time datetime="2018-03-27T02:00:12.000Z" itemprop="datePublished">2018-03-27</time>
+      </a>
+    </div>
+
+
+                
+
+                
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/JAVA/" rel="tag">JAVA</a>, <a class="tag-link" href="/tags/ReentrantLock/" rel="tag">ReentrantLock</a>, <a class="tag-link" href="/tags/%E4%B9%90%E8%A7%82%E9%94%81/" rel="tag">乐观锁</a>, <a class="tag-link" href="/tags/%E6%82%B2%E8%A7%82%E9%94%81/" rel="tag">悲观锁</a>, <a class="tag-link" href="/tags/%E9%94%81/" rel="tag">锁</a>
+    </div>
+
+                
+   <span id="/2018/95270327100012/" class="leancloud-visitors" data-flag-title="说一下公平锁和非公平锁的区别？">
+   <i class="fa fa-eye"></i>
+   <span class="post-meta-item-text">阅读: </span>
+   <i class="leancloud-visitors-count">-</i>
+   </span>
+
+
+                
+   <div class="article-counter">
+      <i class="fa fa-file-word-o"></i>
+      <span class="post-count-item-text">字数: </span>
+      <span class="post-count">1.4k</span>
+      <!-- 
+	  <i class="fa fa-clock-o"></i>
+      <span class="post-time-item-text">阅读时长: </span>
+      <span class="post-count">4 分钟 </span>
+	  -->
+   </div>
+
+
+            </div>
+        
+        
+        <div class="article-entry" itemprop="articleBody">
+            <h4 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h4><p>上次我们提到了乐观锁和悲观锁，那我们知道锁的类型还有很多种，我们今天简单聊一下，公平锁和非公平锁两口子，以及他们在我们代码中的实践。</p>
+<h4 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h4><p>开始聊之前，我先大概说一下他们两者的定义，帮大家回顾或者认识一下。</p>
+<h5 id="公平锁：多个线程按照申请锁的顺序去获得锁，线程会直接进入队列去排队，永远都是队列的第一位才能得到锁。"><a href="#公平锁：多个线程按照申请锁的顺序去获得锁，线程会直接进入队列去排队，永远都是队列的第一位才能得到锁。" class="headerlink" title="公平锁：多个线程按照申请锁的顺序去获得锁，线程会直接进入队列去排队，永远都是队列的第一位才能得到锁。"></a>公平锁：多个线程按照申请锁的顺序去获得锁，线程会直接进入队列去排队，永远都是队列的第一位才能得到锁。</h5><ul>
+<li>优点：所有的线程都能得到资源，不会饿死在队列中。</li>
+<li>缺点：吞吐量会下降很多，队列里面除了第一个线程，其他的线程都会阻塞，cpu唤醒阻塞线程的开销会很大。</li>
+</ul>
+<h5 id="非公平锁：多个线程去获取锁的时候，会直接去尝试获取，获取不到，再去进入等待队列，如果能获取到，就直接获取到锁。"><a href="#非公平锁：多个线程去获取锁的时候，会直接去尝试获取，获取不到，再去进入等待队列，如果能获取到，就直接获取到锁。" class="headerlink" title="非公平锁：多个线程去获取锁的时候，会直接去尝试获取，获取不到，再去进入等待队列，如果能获取到，就直接获取到锁。"></a>非公平锁：多个线程去获取锁的时候，会直接去尝试获取，获取不到，再去进入等待队列，如果能获取到，就直接获取到锁。</h5><ul>
+<li>优点：可以减少CPU唤醒线程的开销，整体的吞吐效率会高点，CPU也不必取唤醒所有线程，会减少唤起线程的数量。</li>
+<li>缺点：你们可能也发现了，这样可能导致队列中间的线程一直获取不到锁或者长时间获取不到锁，导致饿死。</li>
+</ul>
+<p>其实在大家经常使用的ReentrantLock中就有相关公平锁，非公平锁的实现了。</p>
+<p>大家还记得我在乐观锁、悲观锁章节提到的Sync类么，是ReentrantLock他本身的一个内部类，他继承了AbstractQueuedSynchronizer，我们在操作锁的大部分操作，都是Sync本身去实现的。</p>
+<p><img src="/2018/95270327100012/pic1.jpg" alt title="点击放大"></p>
+<p>Sync呢又分别有两个子类：FairSync和NofairSync</p>
+<p><img src="/2018/95270327100012/pic2.jpg" alt title="点击放大"></p>
+<p>他们子类的名字就可以见名知意了，公平和不公平那又是怎么在代码层面体现的呢？</p>
+<p><strong>公平锁：</strong><br><img src="/2018/95270327100012/pic3.jpg" alt title="点击放大"></p>
+<p>你可以看到，他加了一个hasQueuedPredecessors的判断，那他判断里面有些什么玩意呢？<br><img src="/2018/95270327100012/pic4.jpg" alt title="点击放大"></p>
+<p>代码的大概意思也是判断当前的线程是不是位于同步队列的首位，是就是返回true，否就返回false。</p>
+<p>我总觉得写到这里就应该差不多了，但是我坐下来，静静的思考之后发现，还是差了点什么。</p>
+<p>上次聊过ReentrantLock了，但是AQS什么的我都只是提了一嘴，一个线程进来，他整个处理链路到底是怎样的呢？</p>
+<p>公平锁到底公平不公平呢？让我们一起跟着丙丙走进ReentrantLock的内心世界。</p>
+<p>上面提了这么多，我想你应该是有所了解了，那一个线程进来ReentrantLock这个渣男是怎么不公平的呢？（默认是非公平锁）</p>
+<p>我先画个图，帮助大家了解下细节：</p>
+<p>ReentrantLock的Sync继承了AbstractQueuedSynchronizer也就是我们常说的AQS<br><img src="/2018/95270327100012/pic5.jpg" alt title="点击放大"></p>
+<p>他也是ReentrantLock加锁释放锁的核心，大致的内容我之前一期提到了，我就不过多赘述了，他们看看一次加锁的过程吧。</p>
+<p>A线程准备进去获取锁，首先判断了一下state状态，发现是0，所以可以CAS成功，并且修改了当前持有锁的线程为自己。<br><img src="/2018/95270327100012/pic6.jpg" alt title="点击放大"></p>
+<p>这个时候B线程也过来了，也是一上来先去判断了一下state状态，发现是1，那就CAS失败了，真晦气，只能乖乖去等待队列，等着唤醒了，先去睡一觉吧。<br><img src="/2018/95270327100012/pic7.jpg" alt title="点击放大"></p>
+<p>A持有久了，也有点腻了，准备释放掉锁，给别的仔一个机会，所以改了state状态，抹掉了持有锁线程的痕迹，准备去叫醒B。<br><img src="/2018/95270327100012/pic8.jpg" alt title="点击放大"></p>
+<p>这个时候有个带绿帽子的仔C过来了，发现state怎么是0啊，果断CAS修改为1，还修改了当前持有锁的线程为自己。</p>
+<p>B线程被A叫醒准备去获取锁，发现state居然是1，CAS就失败了，只能失落的继续回去等待队列，路线还不忘骂A渣男，怎么骗自己，欺骗我的感情。<br><img src="/2018/95270327100012/pic9.jpg" alt title="点击放大"></p>
+<p>诺以上就是一个非公平锁的线程，这样的情况就有可能像B这样的线程长时间无法得到资源，优点就是可能有的线程减少了等待时间，提高了利用率。</p>
+<p>现在都是默认非公平了，想要公平就得给构造器传值true。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ReentrantLock lock = <span class="keyword">new</span> ReentrantLock(<span class="keyword">true</span>);</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2018/95270327100012/pic10.jpg" alt title="点击放大"></p>
+<p>说完非公平，那我也说一下公平的过程吧：</p>
+<p>线A现在想要获得锁，先去判断下state，发现也是0，去看了看队列，自己居然是第一位，果断修改了持有线程为自己。<br><img src="/2018/95270327100012/pic11.jpg" alt title="点击放大"></p>
+<p>线程b过来了，去判断一下state，嗯哼？居然是state=1，那cas就失败了呀，所以只能乖乖去排队了。<br><img src="/2018/95270327100012/pic12.jpg" alt title="点击放大"></p>
+<p>线程A暖男来了，持有没多久就释放了，改掉了所有的状态就去唤醒线程B了，这个时候线程C进来了，但是他先判断了下state发现是0，以为有戏，然后去看了看队列，发现前面有人了，作为新时代的良好市民，果断排队去了。<br><img src="/2018/95270327100012/pic13.jpg" alt title="点击放大"></p>
+<p>线程B得到A的召唤，去判断state了，发现值为0，自己也是队列的第一位，那很香呀，可以得到了。<br><img src="/2018/95270327100012/pic14.jpg" alt title="点击放大"></p>
+<h4 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h4><p>总结我不说话了，但是去获取锁判断的源码，箭头所指的位置，现在是不是都被我合理的解释了，当前线程，state，是否是0，是否是当前线程等等，都去思考下。<br><img src="/2018/95270327100012/pic15.jpg" alt title="点击放大"></p>
+
+        </div>
+        <footer class="article-footer">
+            
+
+    <div class="bdsharebuttonbox">
+    <a href="#" class="bds_more" data-cmd="more">分享到：</a>
+    <a href="#" class="bds_qzone" data-cmd="qzone" title="分享到QQ空间">QQ空间</a>
+    <a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博">新浪微博</a>
+    <a href="#" class="bds_tqq" data-cmd="tqq" title="分享到腾讯微博">腾讯微博</a>
+    <a href="#" class="bds_renren" data-cmd="renren" title="分享到人人网">人人网</a>
+    <a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信">微信</a>
+</div>
+<script>
+window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"16"},"share":{"bdSize":16}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='//bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+<style>
+    .bdshare_popup_box {
+        border-radius: 4px;
+        border: #e1e1e1 solid 1px;
+    }
+    .bdshare-button-style0-16 a,
+    .bdshare-button-style0-16 .bds_more {
+        padding-left: 20px;
+        margin: 6px 10px 6px 0;
+    }
+    .bdshare_dialog_list a,
+    .bdshare_popup_list a,
+    .bdshare_popup_bottom a {
+        font-family: 'Microsoft Yahei';
+    }
+    .bdshare_popup_top {
+        display: none;
+    }
+    .bdshare_popup_bottom {
+        height: auto;
+        padding: 5px;
+    }
+</style>
+
+
+
+        </footer>
+    </div>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "author": {
+            "@type": "Person",
+            "name": "胡尔摩斯"
+        },
+        "headline": "说一下公平锁和非公平锁的区别？",
+        "image": "http://huermosi.xyz/2018/95270327100012/pic1.jpg",
+        "keywords": "JAVA 锁 ReentrantLock 乐观锁 悲观锁",
+        "genre": "JAVA 锁",
+        "datePublished": "2018-03-27",
+        "dateCreated": "2018-03-27",
+        "dateModified": "2021-04-08",
+        "url": "http://huermosi.xyz/2018/95270327100012/",
+        "description": "前言上次我们提到了乐观锁和悲观锁，那我们知道锁的类型还有很多种，我们今天简单聊一下，公平锁和非公平锁两口子，以及他们在我们代码中的实践。
+正文开始聊之前，我先大概说一下他们两者的定义，帮大家回顾或者认识一下。
+公平锁：多个线程按照申请锁的顺序去获得锁，线程会直接进入队列去排队，永远都是队列的第一位才能得到锁。
+优点：所有的线程都能得到资源，不会饿死在队列中。
+缺点：吞吐量会下降很多，队列里面除了第",
+        "wordCount": 78
+    }
+</script>
+
+</article>
+
+    <section id="comments">
+    
+        <!--  -->
+    <!-- Valine -->
+    <!-- <div class="vcomments"></div> -->
+<!--  -->
+
+    
+    </section>
+
+
+
+                        </div>
+                    </section>
+                    <aside id="sidebar">
+    <a class="sidebar-toggle" title="Expand Sidebar"><i class="toggle icon"></i></a>
+    <div class="sidebar-top">
+        <p>关注我 :</p>
+        <ul class="social-links">
+            
+                
+                <li>
+                    <a class="social-tooltip" title="toutiao" href="https://www.toutiao.com/c/user/79188316021/" target="_blank" rel="noopener">
+						
+							<i class="icon fa fa-tumblr"></i>
+						
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a class="social-tooltip" title="xigua" href="https://www.ixigua.com/home/79188316021/" target="_blank" rel="noopener">
+						
+							<i class="icon fa fa-youtube-play"></i>
+						
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a class="social-tooltip" title="rss" href="/atom.xml" target="_blank" rel="noopener">
+						
+							<i class="icon fa fa-rss"></i>
+						
+                    </a>
+                </li>
+                
+            
+        </ul>
+    </div>
+    
+        
+<nav id="article-nav">
+    
+        <a href="/2019/95270313215608/" id="article-nav-newer" class="article-nav-link-wrap">
+        <strong class="article-nav-caption">下一篇</strong>
+        <p class="article-nav-title">
+        
+            【JVM从小白学成大佬】1.开篇
+        
+        </p>
+        <i class="icon fa fa-chevron-right" id="icon-chevron-right"></i>
+    </a>
+    
+    
+        <a href="/2018/95270322145054/" id="article-nav-older" class="article-nav-link-wrap">
+        <strong class="article-nav-caption">上一篇</strong>
+        <p class="article-nav-title">Cookie/Session/Token的区别</p>
+        <i class="icon fa fa-chevron-left" id="icon-chevron-left"></i>
+        </a>
+    
+</nav>
+
+    
+    <div class="widgets-container">
+        
+            
+                
+
+            
+                
+    <div class="widget-wrap">
+        <h3 class="widget-title">最新文章</h3>
+        <div class="widget">
+            <ul id="recent-post" class="">
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2021/9527888015/" class="thumbnail">
+    
+    
+        <span style="background-image:url(/2021/9527888015/1.png)" alt="SqlSessionTemplate是如何保证MyBatis中SqlSession的线程安全的" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/MYBATIS/">MYBATIS</a></p>
+                            <p class="item-title"><a href="/2021/9527888015/" class="title">SqlSessionTemplate是如何保证MyBatis中SqlSession的线程安全的</a></p>
+                            <p class="item-date"><time datetime="2021-04-15T09:43:20.000Z" itemprop="datePublished">2021-04-15</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2021/9527202104222212000/" class="thumbnail">
+    
+    
+        <span style="background-image:url(/2021/9527202104222212000/1.png)" alt="有点狠有点猛，我用责任链模式重构了业务代码" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/JAVA/">JAVA</a></p>
+                            <p class="item-title"><a href="/2021/9527202104222212000/" class="title">有点狠有点猛，我用责任链模式重构了业务代码</a></p>
+                            <p class="item-date"><time datetime="2021-04-07T13:28:07.000Z" itemprop="datePublished">2021-04-07</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2021/952720210072154/" class="thumbnail">
+    
+    
+        <span style="background-image:url(/2021/952720210072154/1.png)" alt="SpringBoot国际化实战，实现语言的自由切换" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/SPRING/">SPRING</a><i class="icon fa fa-angle-right"></i><a class="article-category-link" href="/categories/SPRING/SPRINGBOOT/">SPRINGBOOT</a></p>
+                            <p class="item-title"><a href="/2021/952720210072154/" class="title">SpringBoot国际化实战，实现语言的自由切换</a></p>
+                            <p class="item-date"><time datetime="2021-04-07T13:02:00.000Z" itemprop="datePublished">2021-04-07</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2021/9527202101-07%2021:45:05/" class="thumbnail">
+    
+    
+        <span style="background-image:url(/2021/9527202101-07%2021:45:05/1.png)" alt="MySQL的万字总结（缓存，索引，Explain，事务，redo日志等）" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/MYSQL/">MYSQL</a></p>
+                            <p class="item-title"><a href="/2021/9527202101-07%2021:45:05/" class="title">MySQL的万字总结（缓存，索引，Explain，事务，redo日志等）</a></p>
+                            <p class="item-date"><time datetime="2021-01-07T13:45:05.000Z" itemprop="datePublished">2021-01-07</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2020/952720210401151900/" class="thumbnail">
+    
+    
+        <span style="background-image:url(/2020/952720210401151900/1.png)" alt="面试官：你是如何评估一个线程池需要设置多少个线程" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/JAVA/">JAVA</a><i class="icon fa fa-angle-right"></i><a class="article-category-link" href="/categories/JAVA/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a></p>
+                            <p class="item-title"><a href="/2020/952720210401151900/" class="title">面试官：你是如何评估一个线程池需要设置多少个线程</a></p>
+                            <p class="item-date"><time datetime="2020-05-11T07:18:33.000Z" itemprop="datePublished">2020-05-11</time></p>
+                        </div>
+                    </li>
+                
+            </ul>
+        </div>
+    </div>
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">分类</h3>
+        <div class="widget">
+            <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/DOCKER/">DOCKER</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/ES/">ES</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/HTTP/">HTTP</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/JAVA/">JAVA</a><span class="category-list-count">18</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/JAVA/JSOUP/">JSOUP</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/JAVA/JVM/">JVM</a><span class="category-list-count">9</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/JAVA/NIO/">NIO</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/JAVA/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/JAVA/%E9%94%81/">锁</a><span class="category-list-count">2</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/MICROSERVICE/">MICROSERVICE</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/MQ/">MQ</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/MQ/RabbitMQ/">RabbitMQ</a><span class="category-list-count">1</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/MYBATIS/">MYBATIS</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/MYSQL/">MYSQL</a><span class="category-list-count">5</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/MYSQL/%E4%BC%98%E5%8C%96/">优化</a><span class="category-list-count">1</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/NGINX/">NGINX</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/SPRING/">SPRING</a><span class="category-list-count">4</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/SPRING/SPRING-SECURITY/">SPRING SECURITY</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/SPRING/SPRINGBOOT/">SPRINGBOOT</a><span class="category-list-count">1</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/SSO/">SSO</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/TCP/">TCP</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%9D%82%E9%A1%B9/">杂项</a><span class="category-list-count">1</span></li></ul>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">归档</h3>
+        <div class="widget">
+            <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">2021-04</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">2021-01</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">2020-05</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">2020-04</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">2020-03</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/02/">2020-02</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">2020-01</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">2019-12</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">2019-10</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/09/">2019-09</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">2019-08</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">2018-03</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">2018-02</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">2018-01</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">2017-08</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">2017-04</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">2017-03</a><span class="archive-list-count">5</span></li></ul>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-float">
+        <h3 class="widget-title">标签云</h3>
+        <div class="widget tagcloud">
+            <a href="/tags/BOOTFS/" style="font-size: 10px;">BOOTFS</a> <a href="/tags/BUILD/" style="font-size: 12px;">BUILD</a> <a href="/tags/COMMIT/" style="font-size: 10px;">COMMIT</a> <a href="/tags/COOKIE/" style="font-size: 10px;">COOKIE</a> <a href="/tags/DOCKER/" style="font-size: 18px;">DOCKER</a> <a href="/tags/DOCKERFILE/" style="font-size: 12px;">DOCKERFILE</a> <a href="/tags/ELASTICSEARCH/" style="font-size: 10px;">ELASTICSEARCH</a> <a href="/tags/ES/" style="font-size: 10px;">ES</a> <a href="/tags/EXPLAIN/" style="font-size: 10px;">EXPLAIN</a> <a href="/tags/HTTP/" style="font-size: 10px;">HTTP</a> <a href="/tags/IO/" style="font-size: 10px;">IO</a> <a href="/tags/JAVA/" style="font-size: 20px;">JAVA</a> <a href="/tags/JMM/" style="font-size: 10px;">JMM</a> <a href="/tags/JSON/" style="font-size: 10px;">JSON</a> <a href="/tags/JSOUP/" style="font-size: 10px;">JSOUP</a> <a href="/tags/JVM/" style="font-size: 18px;">JVM</a> <a href="/tags/JWT/" style="font-size: 10px;">JWT</a> <a href="/tags/MICROSERVICE/" style="font-size: 12px;">MICROSERVICE</a> <a href="/tags/MYBATIS/" style="font-size: 12px;">MYBATIS</a> <a href="/tags/MYSQL/" style="font-size: 16px;">MYSQL</a> <a href="/tags/NGINX/" style="font-size: 12px;">NGINX</a> <a href="/tags/NIO/" style="font-size: 10px;">NIO</a> <a href="/tags/REDO/" style="font-size: 10px;">REDO</a> <a href="/tags/REGISTRY/" style="font-size: 10px;">REGISTRY</a> <a href="/tags/RESTFUL/" style="font-size: 10px;">RESTFUL</a> <a href="/tags/ROOTFS/" style="font-size: 10px;">ROOTFS</a> <a href="/tags/ReentrantLock/" style="font-size: 10px;">ReentrantLock</a> <a href="/tags/SESSION/" style="font-size: 10px;">SESSION</a> <a href="/tags/SPRING/" style="font-size: 16px;">SPRING</a> <a href="/tags/SPRING-BOOT/" style="font-size: 10px;">SPRING BOOT</a> <a href="/tags/SPRING-SECURITY/" style="font-size: 10px;">SPRING SECURITY</a> <a href="/tags/SPRINGBOOT/" style="font-size: 10px;">SPRINGBOOT</a> <a href="/tags/SQLSESSION/" style="font-size: 10px;">SQLSESSION</a> <a href="/tags/SSO/" style="font-size: 12px;">SSO</a> <a href="/tags/TCP/" style="font-size: 16px;">TCP</a> <a href="/tags/THREAD/" style="font-size: 12px;">THREAD</a> <a href="/tags/TOKEN/" style="font-size: 10px;">TOKEN</a> <a href="/tags/VOLATILE/" style="font-size: 10px;">VOLATILE</a> <a href="/tags/ZOOKEEPER/" style="font-size: 10px;">ZOOKEEPER</a> <a href="/tags/notify/" style="font-size: 10px;">notify</a> <a href="/tags/rabbitmq/" style="font-size: 10px;">rabbitmq</a> <a href="/tags/wait/" style="font-size: 10px;">wait</a> <a href="/tags/%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B/" style="font-size: 14px;">三次握手</a> <a href="/tags/%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5/" style="font-size: 10px;">主从同步</a> <a href="/tags/%E4%B9%90%E8%A7%82%E9%94%81/" style="font-size: 10px;">乐观锁</a> <a href="/tags/%E4%BA%8B%E5%8A%A1/" style="font-size: 10px;">事务</a> <a href="/tags/%E4%BB%A3%E7%90%86/" style="font-size: 10px;">代理</a> <a href="/tags/%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B/" style="font-size: 10px;">内存模型</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" style="font-size: 10px;">分布式锁</a> <a href="/tags/%E5%8D%95%E4%BE%8B%E6%A8%A1%E5%BC%8F/" style="font-size: 10px;">单例模式</a> <a href="/tags/%E5%8D%95%E7%82%B9%E7%99%BB%E5%BD%95/" style="font-size: 10px;">单点登录</a> <a href="/tags/%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86/" style="font-size: 10px;">反向代理</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 10px;">可见性</a> <a href="/tags/%E5%91%BD%E4%BB%A4/" style="font-size: 10px;">命令</a> <a href="/tags/%E5%9B%9B%E6%AC%A1%E6%8C%A5%E6%89%8B/" style="font-size: 10px;">四次挥手</a> <a href="/tags/%E5%A4%8D%E5%88%B6/" style="font-size: 10px;">复制</a> <a href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" style="font-size: 10px;">多线程</a> <a href="/tags/%E5%AE%B9%E5%99%A8/" style="font-size: 10px;">容器</a> <a href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" style="font-size: 10px;">并发编程</a> <a href="/tags/%E5%BC%95%E7%94%A8/" style="font-size: 10px;">引用</a> <a href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" style="font-size: 12px;">微服务</a> <a href="/tags/%E6%82%B2%E8%A7%82%E9%94%81/" style="font-size: 10px;">悲观锁</a> <a href="/tags/%E6%8C%87%E4%BB%A4/" style="font-size: 10px;">指令</a> <a href="/tags/%E6%9E%B6%E6%9E%84/" style="font-size: 10px;">架构</a> <a href="/tags/%E6%9F%A5%E8%AF%A2%E6%95%88%E7%8E%87/" style="font-size: 10px;">查询效率</a> <a href="/tags/%E7%88%AC%E8%99%AB/" style="font-size: 10px;">爬虫</a> <a href="/tags/%E7%94%B5%E5%95%86/" style="font-size: 10px;">电商</a> <a href="/tags/%E7%9F%AD%E8%BF%9E%E6%8E%A5/" style="font-size: 10px;">短连接</a> <a href="/tags/%E7%B4%A2%E5%BC%95/" style="font-size: 10px;">索引</a> <a href="/tags/%E7%BA%BF%E7%A8%8B/" style="font-size: 10px;">线程</a> <a href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/" style="font-size: 10px;">线程池</a> <a href="/tags/%E8%81%8C%E8%B4%A3%E9%93%BE%E6%A8%A1%E5%BC%8F/" style="font-size: 10px;">职责链模式</a> <a href="/tags/%E8%AE%A2%E5%8D%95/" style="font-size: 10px;">订单</a> <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 10px;">设计模式</a> <a href="/tags/%E8%AF%BB%E5%86%99%E5%88%86%E7%A6%BB/" style="font-size: 10px;">读写分离</a> <a href="/tags/%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1/" style="font-size: 10px;">负载均衡</a> <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 10px;">运维</a> <a href="/tags/%E9%94%81/" style="font-size: 10px;">锁</a> <a href="/tags/%E9%95%9C%E5%83%8F/" style="font-size: 12px;">镜像</a> <a href="/tags/%E9%95%BF%E8%BF%9E%E6%8E%A5/" style="font-size: 10px;">长连接</a> <a href="/tags/%E9%9D%A2%E8%AF%95/" style="font-size: 10px;">面试</a>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">链接</h3>
+        <div class="widget">
+            <ul>
+                
+                    <li>
+                        <a href="https://www.cnblogs.com/heyonggang/" target="_blank" rel="noopener">猿人谷</a>
+                    </li>
+                
+                    <li>
+                        <a href="http://www.cnblogs.com/dolphin0520/" target="_blank" rel="noopener">Matrix海子</a>
+                    </li>
+                
+                    <li>
+                        <a href="https://www.cnblogs.com/wihainan/" target="_blank" rel="noopener">yweihainan</a>
+                    </li>
+                
+            </ul>
+        </div>
+    </div>
+
+
+            
+        
+    </div>
+</aside>
+
+                </div>
+            </div>
+        </div>
+        <footer id="footer">
+    <div class="container">
+        <div class="container-inner">
+            <a id="back-to-top" href="javascript:;"><i class="icon fa fa-angle-up"></i></a>
+            <div class="credit">
+                <h1 class="logo-wrap">
+                    <a href="/" class="logo"></a>
+                </h1>
+                <p>&copy; 2021 胡尔摩斯</p>
+                
+				<!--这一段是不蒜子的访问量统计脚本-->
+                <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+                <span id="busuanzi_container_site_pv">本站总访问量<span id="busuanzi_value_site_pv"></span>次 &nbsp;   </span>
+                <span id="busuanzi_container_site_uv">访客数<span id="busuanzi_value_site_uv"></span>人次</span>
+            </div>
+            <div class="footer-plugins">
+              
+    
+
+
+            </div>
+        </div>
+    </div>
+</footer>
+        
+    <!--  -->
+    <script src="//unpkg.com/valine"></script>
+    <script>
+        var GUEST = ['nick','mail','link'];
+        var meta = '';
+        meta = meta.split(',').filter(function (item) {
+            return GUEST.indexOf(item)>-1;
+        });
+        var avatarcdn = 'https://gravatar.loli.net/avatar/' == true;
+        new Valine({
+            el: '.vcomments',
+            notify: "",
+            verify: "",
+            appId: "XrfLUFS8GBEm6p58RABdM6Ch-gzGzoHsz",
+            appKey: "Wo4mK9i26qPw5TFP8TytPdMr",
+            placeholder: "Just Do It",
+            avatar:"identicon",
+            recordIP:"true",
+            visitor: "true"
+        });
+    </script>
+<!--  -->
+
+
+
+
+    
+        
+<script src="/libs/lightgallery/js/lightgallery.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-thumbnail.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-pager.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-autoplay.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-fullscreen.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-zoom.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-hash.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-share.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-video.min.js"></script>
+
+    
+    
+        
+<script src="/libs/justified-gallery/jquery.justifiedGallery.min.js"></script>
+
+    
+    
+
+    
+      <script data-ad-client="ca-pub-8167041820940565" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+
+    
+
+
+
+<!-- Custom Scripts -->
+
+<script src="/js/main.js"></script>
+
+
+    </div>
+</body>
+</html>

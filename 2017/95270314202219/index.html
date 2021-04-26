@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+
+    
+
+    
+    <title>Linux下TCP连接过程总结 | 胡尔摩斯</title>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="keywords" content="TCP" />
+    
+    <meta name="description" content="一、Linux服务器上11种网络连接状态: 通常情况下，一个正常的TCP连接，都会有三个阶段:1、TCP三次握手; 2、数据传送; 3、TCP四次挥手 注:以下说明最好能结合”图:TCP的状态机”来理解。 SYN: (同步序列编号,Synchronize Sequence Numbers)该标志仅在三次握手建立TCP连接时有效。表示一个新的TCP连接请求。 ACK: (确认编号,Acknowled">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux下TCP连接过程总结">
+<meta property="og:url" content="http://huermosi.xyz/2017/95270314202219/index.html">
+<meta property="og:site_name" content="胡尔摩斯">
+<meta property="og:description" content="一、Linux服务器上11种网络连接状态: 通常情况下，一个正常的TCP连接，都会有三个阶段:1、TCP三次握手; 2、数据传送; 3、TCP四次挥手 注:以下说明最好能结合”图:TCP的状态机”来理解。 SYN: (同步序列编号,Synchronize Sequence Numbers)该标志仅在三次握手建立TCP连接时有效。表示一个新的TCP连接请求。 ACK: (确认编号,Acknowled">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://huermosi.xyz/2017/95270314202219/tcp-status.jpg">
+<meta property="article:published_time" content="2017-03-14T12:22:19.000Z">
+<meta property="article:modified_time" content="2021-04-08T08:49:31.784Z">
+<meta property="article:author" content="胡尔摩斯">
+<meta property="article:tag" content="TCP">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://huermosi.xyz/2017/95270314202219/tcp-status.jpg">
+    
+
+    
+        <link rel="alternate" href="/atom.xml" title="胡尔摩斯" type="application/atom+xml" />
+    
+
+    
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/libs/titillium-web/styles.css">
+
+    
+<link rel="stylesheet" href="/libs/source-code-pro/styles.css">
+
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    
+<script src="/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    
+    
+        
+<link rel="stylesheet" href="/libs/lightgallery/css/lightgallery.min.css">
+
+    
+    
+        
+<link rel="stylesheet" href="/libs/justified-gallery/justifiedGallery.min.css">
+
+    
+    
+    
+
+
+	
+	<!--百度统计-->
+	<script>
+	var _hmt = _hmt || [];
+	(function() {
+	  var hm = document.createElement("script");
+	  hm.src = "https://hm.baidu.com/hm.js?025104cd42fa406fd2c9f41125b6d7ce";
+	  var s = document.getElementsByTagName("script")[0]; 
+	  s.parentNode.insertBefore(hm, s);
+	})();
+	</script>
+	
+	<!--百度SEO-->
+	<script>
+	(function(){
+		var bp = document.createElement('script');
+		var curProtocol = window.location.protocol.split(':')[0];
+		if (curProtocol === 'https') {
+			bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+		}
+		else {
+			bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+		}
+		var s = document.getElementsByTagName("script")[0];
+		s.parentNode.insertBefore(bp, s);
+	})();
+	</script>
+	
+	<!--Google SEO-->
+	<meta name="google-site-verification" content="eQEfd78WjFtLEjkKijFZOBmGhY2J4CI_qGL_RX8IUEs" />
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+    <div id="wrap">
+        <header id="header">
+    <div id="header-outer" class="outer">
+        <div class="container">
+            <div class="container-inner">
+                <div id="header-title">
+                    <h1 class="logo-wrap">
+                        <a href="/" class="logo"></a>
+                    </h1>
+                    
+                        <h2 class="subtitle-wrap">
+                            <p class="subtitle">胡尔摩斯</p>
+                        </h2>
+                    
+                </div>
+                <div id="header-inner" class="nav-container">
+                    <a id="main-nav-toggle" class="nav-icon fa fa-bars"></a>
+                    <div class="nav-container-inner">
+                        <ul id="main-nav">
+                            
+                                <li class="main-nav-list-item" >
+                                    <a class="main-nav-list-link" href="/">主页</a>
+                                </li>
+                            
+                                        <ul class="main-nav-list"><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/DOCKER/">DOCKER</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/ES/">ES</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/HTTP/">HTTP</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/JAVA/">JAVA</a><ul class="main-nav-list-child"><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/JAVA/JSOUP/">JSOUP</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/JAVA/JVM/">JVM</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/JAVA/NIO/">NIO</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/JAVA/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/JAVA/%E9%94%81/">锁</a></li></ul></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/MICROSERVICE/">MICROSERVICE</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/MQ/">MQ</a><ul class="main-nav-list-child"><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/MQ/RabbitMQ/">RabbitMQ</a></li></ul></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/MYBATIS/">MYBATIS</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/MYSQL/">MYSQL</a><ul class="main-nav-list-child"><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/MYSQL/%E4%BC%98%E5%8C%96/">优化</a></li></ul></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/NGINX/">NGINX</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/SPRING/">SPRING</a><ul class="main-nav-list-child"><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/SPRING/SPRING-SECURITY/">SPRING SECURITY</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/SPRING/SPRINGBOOT/">SPRINGBOOT</a></li></ul></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/SSO/">SSO</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/TCP/">TCP</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/%E6%9D%82%E9%A1%B9/">杂项</a></li></ul>
+                                    
+                        </ul>
+                        <nav id="sub-nav">
+                            <div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="搜索" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="想要查找什么..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+        <div class="container">
+            <div class="main-body container-inner">
+                <div class="main-body-inner">
+                    <section id="main">
+                        <div class="main-body-header">
+    <h1 class="header">
+    
+    <a class="page-title-link" href="/categories/TCP/">TCP</a>
+    </h1>
+</div>
+
+                        <div class="main-body-content">
+                            <article id="post-tcp/linux-tcp-connect-procedure" class="article article-single article-type-post" itemscope itemprop="blogPost">
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+    
+        <h1 class="article-title" itemprop="name">
+        Linux下TCP连接过程总结
+        </h1>
+    
+
+            </header>
+        
+        
+            <div class="article-meta">
+                
+    <div class="article-date">
+      <i class="fa fa-calendar"></i>
+      <a href="/2017/95270314202219/" class="article-date">
+         <time datetime="2017-03-14T12:22:19.000Z" itemprop="datePublished">2017-03-14</time>
+      </a>
+    </div>
+
+
+                
+
+                
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/TCP/" rel="tag">TCP</a>
+    </div>
+
+                
+   <span id="/2017/95270314202219/" class="leancloud-visitors" data-flag-title="Linux下TCP连接过程总结">
+   <i class="fa fa-eye"></i>
+   <span class="post-meta-item-text">阅读: </span>
+   <i class="leancloud-visitors-count">-</i>
+   </span>
+
+
+                
+   <div class="article-counter">
+      <i class="fa fa-file-word-o"></i>
+      <span class="post-count-item-text">字数: </span>
+      <span class="post-count">4.3k</span>
+      <!-- 
+	  <i class="fa fa-clock-o"></i>
+      <span class="post-time-item-text">阅读时长: </span>
+      <span class="post-count">15 分钟 </span>
+	  -->
+   </div>
+
+
+            </div>
+        
+        
+        <div class="article-entry" itemprop="articleBody">
+            <h4 id="一、Linux服务器上11种网络连接状态"><a href="#一、Linux服务器上11种网络连接状态" class="headerlink" title="一、Linux服务器上11种网络连接状态:"></a>一、Linux服务器上11种网络连接状态:</h4><p><img src="/2017/95270314202219/tcp-status.jpg" alt="TCP的状态机"></p>
+<p>通常情况下，一个正常的TCP连接，都会有三个阶段:1、TCP三次握手; 2、数据传送; 3、TCP四次挥手</p>
+<p>注:以下说明最好能结合”图:TCP的状态机”来理解。</p>
+<p>SYN: (同步序列编号,Synchronize Sequence Numbers)该标志仅在三次握手建立TCP连接时有效。表示一个新的TCP连接请求。</p>
+<p>ACK: (确认编号,Acknowledgement Number)是对TCP请求的确认标志,同时提示对端系统已经成功接收所有数据。</p>
+<p>FIN: (结束标志,FINish)用来结束一个TCP回话.但对应端口仍处于开放状态,准备接收后续数据。</p>
+<p>1)、LISTEN:首先服务端需要打开一个socket进行监听，状态为LISTEN. /* The socket is listening for incoming connections. 侦听来自远方TCP端口的连接请求 <em>/<br>2)、SYN_SENT:客户端通过应用程序调用connect进行active open.于是客户端tcp发送一个SYN以请求建立一个连接.之后状态置为SYN_SENT. /</em>The socket is actively attempting to establish a connection. 在发送连接请求后等待匹配的连接请求 */</p>
+<p>3)、SYN_RECV:服务端应发出ACK确认客户端的SYN,同时自己向客户端发送一个SYN. 之后状态置为SYN_RECV /* A connection request has been received from the network. 在收到和发送一个连接请求后等待对连接请求的确认 */</p>
+<p>4)、ESTABLISHED: 代表一个打开的连接，双方可以进行或已经在数据交互了。/* The socket has an established connection. 代表一个打开的连接，数据可以传送给用户 */</p>
+<p>5)、FIN_WAIT1:主动关闭(active close)端应用程序调用close，于是其TCP发出FIN请求主动关闭连接，之后进入FIN_WAIT1状态./* The socket is closed, and the connection is shutting down. 等待远程TCP的连接中断请求，或先前的连接中断请求的确认 */</p>
+<p>6)、CLOSE_WAIT:被动关闭(passive close)端TCP接到FIN后，就发出ACK以回应FIN请求(它的接收也作为文件结束符传递给上层应用程序),并进入CLOSE_WAIT. /* The remote end has shut down, waiting for the socket to close. 等待从本地用户发来的连接中断请求 */</p>
+<p>7)、FIN_WAIT2:主动关闭端接到ACK后，就进入了FIN-WAIT-2 ./* Connection is closed, and the socket is waiting for a shutdown from the remote end. 从远程TCP等待连接中断请求 */</p>
+<p>8)、LAST_ACK:被动关闭端一段时间后，接收到文件结束符的应用程序将调用CLOSE关闭连接。这导致它的TCP也发送一个 FIN,等待对方的ACK.就进入了LAST-ACK . /* The remote end has shut down, and the socket is closed. Waiting for acknowledgement. 等待原来发向远程TCP的连接中断请求的确认 */</p>
+<p>9)、TIME_WAIT:在主动关闭端接收到FIN后，TCP就发送ACK包，并进入TIME-WAIT状态。/* The socket is waiting after close to handle packets still in the network.等待足够的时间以确保远程TCP接收到连接中断请求的确认 */</p>
+<p>10)、CLOSING: 比较少见./* Both sockets are shut down but we still don’t have all our data sent. 等待远程TCP对连接中断的确认 */</p>
+<p>11)、CLOSED: 被动关闭端在接受到ACK包后，就进入了closed的状态。连接结束./* The socket is not being used. 没有任何连接状态 */</p>
+<p>TIME_WAIT状态的形成只发生在主动关闭连接的一方。<br>主动关闭方在接收到被动关闭方的FIN请求后，发送成功给对方一个ACK后,将自己的状态由FIN_WAIT2修改为TIME_WAIT，而必须再等2 倍 的MSL(Maximum Segment Lifetime,MSL是一个数据报在internetwork中能存在的时间)时间之后双方才能把状态都改为CLOSED以关闭连接。目前RHEL里保持TIME_WAIT状态的时间为60秒。当然上述很多TCP状态在系统里都有对应的解释或设置,可见 man tcp</p>
+<p>二、关于长连接和短连接:<br>通俗点讲，短连接就是一次TCP请求得到结果后,连接马上结束.而长连接并不马上断开,而一直保持着,直到长连接TIMEOUT(具体程序都有相关参数说明).长连接可以避免不断的进行TCP三次握手和四次挥手。<br>长连接(keepalive)是需要靠双方不断的发送探测包来维持的,keepalive期间服务端和客户端的TCP连接状态是ESTABLISHED.目 前http1.1版本里默认都是keepalive(1.0版本默认是不keepalive的)，ie6/7/8和firefox都默认用的是http 1.1版本了(如何查看当前浏览器用的是哪个版本，这里不再赘述)。一个应用至于到底是该使用短连接还是长连接，应该视具体情况而定。一般的应用应该使用长连接。</p>
+<p><strong>TCP四次挥手</strong><br>TCP协议有一个优雅的关闭（graceful close）机制，以保证应用程序在关闭连接时不必担心正在传输的数据会丢失。如第4.5节的压缩示例程序所示，这个机制还设计为允许两个方向的数据传输 相互独立地终止。关闭机制的工作流程是：应用程序通过调用连接套接字的close()方法或shutdownOutput()方法表明数据已经发送完毕。 此刻，底层的TCP实现首先将留存在SendQ队列中的数据传输出去（还要依赖于另一端RecvQ队列的剩余空间），然后向另一端发送一个关闭TCP连接 的握手消息。该关闭握手消息可以看作是流终止标志：它告诉接收端TCP不会再有新的数据传入RecvQ队列了。（注意，关闭握手消息本身并没有传递给接收 端应用程序，而是通过read()方法返回-1来指示其在字节流中的位置。）正在关闭的TCP将等待其关闭握手消息的确认信息，该确认信息表明在连接上传 输的所有数据已经安全地传输到了RecvQ中。只要收到了确认消息，该连接就变成”半关闭（Half closed）”状态。直到连接的另一个方向上收到了对称的握手消息后，连接才完全关闭–也就是说，连接的两端都表明它们再没有数据要发送了。</p>
+<p>TCP连接的关闭事件序列可能以两种方式发生：一种方式是先由一个应用程序调用close()方法（或shutdownOutput()方法），并在另 一端调用close()方法之前完成其关闭握手消息；另一种方式是两端同时调用close()方法，它们的关闭握手消息在网络上交叉传输。图6.10展示 了以第一种方式关闭连接时，底层实现中的事件序列。关闭握手消息已经发送，套接字数据结构的状态也已经设置为”Closing”（专业术语称 为”FIN_WAIT_1”），然后close()调用返回。完成这些工作后，将禁止在该Socket上的任何读写操作（会抛出异常）。当收到关闭握手确 认消息后，套接字数据结构的状态则改变为”半关闭”（专业术语称为”FIN_WAIT_2”），这种状态将一直持续，直到接收到另一端的关闭握手消息</p>
+<p>关闭TCP连接的最后微妙之处在于对Time-Wait状态的需要。TCP规范要求在终止连接时，两端的关闭握手都完成后，至少要有一个套接字在 Time-Wait状态保持一段时间。这个要求的提出是由于消息在网络中传输时可能延迟。如果在连接两端都完成了关闭握手后，它们都移除了其底层数据结 构，而此时在同样一对套接字地址之间又立即建立了新的连接，那么前一个连接在网络上传输时延迟的消息就可能在新连接建立后到达。由于其包含了相同的源地址 和目的地址，旧消息就会被错误地认为是属于新连接的，其包含的数据就可能被错误地分配到应用程序中。</p>
+<p>虽然这种情形可能很少发生，TCP还是使用了包括Time-Wait状态在内的多种机制对其进行防范。Time-Wait状态用于保证每个TCP连接都 在一段平静时间内结束，这期间不会有数据发送。平静时间的长度应该等于分组报文在网络上存留的最长时间的两倍。因此，当一个连接完全结束（即套接字数据结 构离开Time-Wait状态并被删除），并为同样一对地址上的新连接清理道路后，就不会再有旧实例发送的消息还存留在网络中。实际上，平静时间的长度要 依赖于具体实现，因为没有机制能真正限制分组报文在网络上能够延迟的时间。通常使用的时间范围是4分钟减到30秒，或更短。</p>
+<p>Time-Wait状态最重要的作用是，只要底层套接字数据结构还存在，就不允许在相同的本地端口上关联其他套接字。尤其是试图使用该端口创建新的Socket实例时，将抛出IOException异常。</p>
+<p><strong>TCP三次握手/四次挥手详解</strong><br>1、建立连接协议（三次握手）<br>（1）客户端发送一个带SYN标志的TCP报文到服务器。这是三次握手过程中的报文1。<br>（2） 服务器端回应客户端的，这是三次握手中的第2个报文，这个报文同时带ACK标志和SYN标志。因此它表示对刚才客户端SYN报文的回应；同时又标志SYN给客户端，询问客户端是否准备好进行数据通讯。<br>（3） 客户必须再次回应服务段一个ACK报文，这是报文段3。</p>
+<p>2、连接终止协议（四次挥手）<br>　 　由于TCP连接是全双工的，因此每个方向都必须单独进行关闭。这原则是当一方完成它的数据发送任务后就能发送一个FIN来终止这个方向的连接。收到一个 FIN只意味着这一方向上没有数据流动，一个TCP连接在收到一个FIN后仍能发送数据。首先进行关闭的一方将执行主动关闭，而另一方执行被动关闭。<br>　（1） TCP客户端发送一个FIN，用来关闭客户到服务器的数据传送（报文段4）。<br>　（2） 服务器收到这个FIN，它发回一个ACK，确认序号为收到的序号加1（报文段5）。和SYN一样，一个FIN将占用一个序号。<br>　（3） 服务器关闭客户端的连接，发送一个FIN给客户端（报文段6）。<br>　（4） 客户段发回ACK报文确认，并将确认序号设置为收到序号加1（报文段7）。</p>
+<p>CLOSED: 这个没什么好说的了，表示初始状态。</p>
+<p>LISTEN: 这个也是非常容易理解的一个状态，表示服务器端的某个SOCKET处于监听状态，可以接受连接了。</p>
+<p>SYN_RCVD: 这个状态表示接受到了SYN报文，在正常情况下，这个状态是服务器端的SOCKET在建立TCP连接时的三次握手会话过程中的一个中间状态，很短暂，基本 上用netstat你是很难看到这种状态的，除非你特意写了一个客户端测试程序，故意将三次TCP握手过程中最后一个ACK报文不予发送。因此这种状态 时，当收到客户端的ACK报文后，它会进入到ESTABLISHED状态。</p>
+<p>SYN_SENT: 这个状态与SYN_RCVD遥想呼应，当客户端SOCKET执行CONNECT连接时，它首先发送SYN报文，因此也随即它会进入到了SYN_SENT状 态，并等待服务端的发送三次握手中的第2个报文。SYN_SENT状态表示客户端已发送SYN报文。</p>
+<p>ESTABLISHED：这个容易理解了，表示连接已经建立了。</p>
+<p>FIN_WAIT_1: 这个状态要好好解释一下，其实FIN_WAIT_1和FIN_WAIT_2状态的真正含义都是表示等待对方的FIN报文。而这两种状态的区别 是：FIN_WAIT_1状态实际上是当SOCKET在ESTABLISHED状态时，它想主动关闭连接，向对方发送了FIN报文，此时该SOCKET即 进入到FIN_WAIT_1状态。而当对方回应ACK报文后，则进入到FIN_WAIT_2状态，当然在实际的正常情况下，无论对方何种情况下，都应该马 上回应ACK报文，所以FIN_WAIT_1状态一般是比较难见到的，而FIN_WAIT_2状态还有时常常可以用netstat看到。</p>
+<p>FIN_WAIT_2：上面已经详细解释了这种状态，实际上FIN_WAIT_2状态下的SOCKET，表示半连接，也即有一方要求close连接，但另外还告诉对方，我暂时还有点数据需要传送给你，稍后再关闭连接。</p>
+<p>TIME_WAIT: 表示收到了对方的FIN报文，并发送出了ACK报文，就等2MSL后即可回到CLOSED可用状态了。如果FIN_WAIT_1状态下，收到了对方同时带 FIN标志和ACK标志的报文时，可以直接进入到TIME_WAIT状态，而无须经过FIN_WAIT_2状态。</p>
+<p>CLOSING: 这种状态比较特殊，实际情况中应该是很少见，属于一种比较罕见的例外状态。正常情况下，当你发送FIN报文后，按理来说是应该先收到（或同时收到）对方的 ACK报文，再收到对方的FIN报文。但是CLOSING状态表示你发送FIN报文后，并没有收到对方的ACK报文，反而却也收到了对方的FIN报文。什 么情况下会出现此种情况呢？其实细想一下，也不难得出结论：那就是如果双方几乎在同时close一个SOCKET的话，那么就出现了双方同时发送FIN报 文的情况，也即会出现CLOSING状态，表示双方都正在关闭SOCKET连接。</p>
+<p>CLOSE_WAIT: 这种状态的含义其实是表示在等待关闭。怎么理解呢？当对方close一个SOCKET后发送FIN报文给自己，你系统毫无疑问地会回应一个ACK报文给对 方，此时则进入到CLOSE_WAIT状态。接下来呢，实际上你真正需要考虑的事情是察看你是否还有数据发送给对方，如果没有的话，那么你也就可以 close这个SOCKET，发送FIN报文给对方，也即关闭连接。所以你在CLOSE_WAIT状态下，需要完成的事情是等待你去关闭连接。</p>
+<p>LAST_ACK: 这个状态还是比较容易好理解的，它是被动关闭一方在发送FIN报文后，最后等待对方的ACK报文。当收到ACK报文后，也即可以进入到CLOSED可用状态了。</p>
+<p>最后有2个问题的回答，我自己分析后的结论（不一定保证100%正确）:</p>
+<p>1、 为什么建立连接协议是三次握手，而关闭连接却是四次握手呢？<br>这 是因为服务端的LISTEN状态下的SOCKET当收到SYN报文的建连请求后，它可以把ACK和SYN（ACK起应答作用，而SYN起同步作用）放在一 个报文里来发送。但关闭连接时，当收到对方的FIN报文通知时，它仅仅表示对方没有数据发送给你了；但未必你所有的数据都全部发送给对方了，所以你可以未 必会马上会关闭SOCKET,也即你可能还需要发送一些数据给对方之后，再发送FIN报文给对方来表示你同意现在可以关闭连接了，所以它这里的ACK报文 和FIN报文多数情况下都是分开发送的。</p>
+<p>2、 为什么TIME_WAIT状态还需要等2MSL后才能返回到CLOSED状态？<br>这 是因为：虽然双方都同意关闭连接了，而且握手的4个报文也都协调和发送完毕，按理可以直接回到CLOSED状态（就好比从SYN_SEND状态到 ESTABLISH状态那样）；但是因为我们必须要假想网络是不可靠的，你无法保证你最后发送的ACK报文会一定被对方收到，因此对方处于 LAST_ACK状态下的SOCKET可能会因为超时未收到ACK报文，而重发FIN报文，所以这个TIME_WAIT状态的作用就是用来重发可能丢失的 ACK报文。</p>
+<blockquote>
+<p>本文转载自<a href="https://www.cnblogs.com/heyonggang/" target="_blank" rel="noopener">猿人谷</a>博客，原文连接点<a href="https://www.cnblogs.com/heyonggang/archive/2012/12/21/2827397.html" target="_blank" rel="noopener">这里</a>，版权归原作者所有。<br>微信公众号：<a href="yuanrengu.jpg">猿人谷</a><br>如果您认为阅读这篇博客让您有些收获，不妨点击一下右下角的【推荐】<br>如果您希望与我交流互动，欢迎关注微信公众号<br>本文版权归作者和博客园共有，欢迎转载，但未经作者同意必须保留此段声明，且在文章页面明显位置给出原文连接。</p>
+</blockquote>
+
+        </div>
+        <footer class="article-footer">
+            
+
+    <div class="bdsharebuttonbox">
+    <a href="#" class="bds_more" data-cmd="more">分享到：</a>
+    <a href="#" class="bds_qzone" data-cmd="qzone" title="分享到QQ空间">QQ空间</a>
+    <a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博">新浪微博</a>
+    <a href="#" class="bds_tqq" data-cmd="tqq" title="分享到腾讯微博">腾讯微博</a>
+    <a href="#" class="bds_renren" data-cmd="renren" title="分享到人人网">人人网</a>
+    <a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信">微信</a>
+</div>
+<script>
+window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"16"},"share":{"bdSize":16}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='//bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+<style>
+    .bdshare_popup_box {
+        border-radius: 4px;
+        border: #e1e1e1 solid 1px;
+    }
+    .bdshare-button-style0-16 a,
+    .bdshare-button-style0-16 .bds_more {
+        padding-left: 20px;
+        margin: 6px 10px 6px 0;
+    }
+    .bdshare_dialog_list a,
+    .bdshare_popup_list a,
+    .bdshare_popup_bottom a {
+        font-family: 'Microsoft Yahei';
+    }
+    .bdshare_popup_top {
+        display: none;
+    }
+    .bdshare_popup_bottom {
+        height: auto;
+        padding: 5px;
+    }
+</style>
+
+
+
+        </footer>
+    </div>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "author": {
+            "@type": "Person",
+            "name": "胡尔摩斯"
+        },
+        "headline": "Linux下TCP连接过程总结",
+        "image": "http://huermosi.xyz/2017/95270314202219/tcp-status.jpg",
+        "keywords": "TCP",
+        "genre": "TCP",
+        "datePublished": "2017-03-14",
+        "dateCreated": "2017-03-14",
+        "dateModified": "2021-04-08",
+        "url": "http://huermosi.xyz/2017/95270314202219/",
+        "description": "一、Linux服务器上11种网络连接状态:
+通常情况下，一个正常的TCP连接，都会有三个阶段:1、TCP三次握手; 2、数据传送; 3、TCP四次挥手
+注:以下说明最好能结合”图:TCP的状态机”来理解。
+SYN: (同步序列编号,Synchronize Sequence Numbers)该标志仅在三次握手建立TCP连接时有效。表示一个新的TCP连接请求。
+ACK: (确认编号,Acknowled",
+        "wordCount": 236
+    }
+</script>
+
+</article>
+
+    <section id="comments">
+    
+        <!--  -->
+    <!-- Valine -->
+    <!-- <div class="vcomments"></div> -->
+<!--  -->
+
+    
+    </section>
+
+
+
+                        </div>
+                    </section>
+                    <aside id="sidebar">
+    <a class="sidebar-toggle" title="Expand Sidebar"><i class="toggle icon"></i></a>
+    <div class="sidebar-top">
+        <p>关注我 :</p>
+        <ul class="social-links">
+            
+                
+                <li>
+                    <a class="social-tooltip" title="toutiao" href="https://www.toutiao.com/c/user/79188316021/" target="_blank" rel="noopener">
+						
+							<i class="icon fa fa-tumblr"></i>
+						
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a class="social-tooltip" title="xigua" href="https://www.ixigua.com/home/79188316021/" target="_blank" rel="noopener">
+						
+							<i class="icon fa fa-youtube-play"></i>
+						
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a class="social-tooltip" title="rss" href="/atom.xml" target="_blank" rel="noopener">
+						
+							<i class="icon fa fa-rss"></i>
+						
+                    </a>
+                </li>
+                
+            
+        </ul>
+    </div>
+    
+        
+<nav id="article-nav">
+    
+        <a href="/2017/95270316221640/" id="article-nav-newer" class="article-nav-link-wrap">
+        <strong class="article-nav-caption">下一篇</strong>
+        <p class="article-nav-title">
+        
+            Java并发编程：线程间协作的两种方式：wait、notify、notifyAll和Condition
+        
+        </p>
+        <i class="icon fa fa-chevron-right" id="icon-chevron-right"></i>
+    </a>
+    
+    
+        <a href="/2017/95270314210351/" id="article-nav-older" class="article-nav-link-wrap">
+        <strong class="article-nav-caption">上一篇</strong>
+        <p class="article-nav-title">长连接和短连接分析</p>
+        <i class="icon fa fa-chevron-left" id="icon-chevron-left"></i>
+        </a>
+    
+</nav>
+
+    
+    <div class="widgets-container">
+        
+            
+                
+
+            
+                
+    <div class="widget-wrap">
+        <h3 class="widget-title">最新文章</h3>
+        <div class="widget">
+            <ul id="recent-post" class="">
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2021/9527888015/" class="thumbnail">
+    
+    
+        <span style="background-image:url(/2021/9527888015/1.png)" alt="SqlSessionTemplate是如何保证MyBatis中SqlSession的线程安全的" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/MYBATIS/">MYBATIS</a></p>
+                            <p class="item-title"><a href="/2021/9527888015/" class="title">SqlSessionTemplate是如何保证MyBatis中SqlSession的线程安全的</a></p>
+                            <p class="item-date"><time datetime="2021-04-15T09:43:20.000Z" itemprop="datePublished">2021-04-15</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2021/9527202104222212000/" class="thumbnail">
+    
+    
+        <span style="background-image:url(/2021/9527202104222212000/1.png)" alt="有点狠有点猛，我用责任链模式重构了业务代码" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/JAVA/">JAVA</a></p>
+                            <p class="item-title"><a href="/2021/9527202104222212000/" class="title">有点狠有点猛，我用责任链模式重构了业务代码</a></p>
+                            <p class="item-date"><time datetime="2021-04-07T13:28:07.000Z" itemprop="datePublished">2021-04-07</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2021/952720210072154/" class="thumbnail">
+    
+    
+        <span style="background-image:url(/2021/952720210072154/1.png)" alt="SpringBoot国际化实战，实现语言的自由切换" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/SPRING/">SPRING</a><i class="icon fa fa-angle-right"></i><a class="article-category-link" href="/categories/SPRING/SPRINGBOOT/">SPRINGBOOT</a></p>
+                            <p class="item-title"><a href="/2021/952720210072154/" class="title">SpringBoot国际化实战，实现语言的自由切换</a></p>
+                            <p class="item-date"><time datetime="2021-04-07T13:02:00.000Z" itemprop="datePublished">2021-04-07</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2021/9527202101-07%2021:45:05/" class="thumbnail">
+    
+    
+        <span style="background-image:url(/2021/9527202101-07%2021:45:05/1.png)" alt="MySQL的万字总结（缓存，索引，Explain，事务，redo日志等）" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/MYSQL/">MYSQL</a></p>
+                            <p class="item-title"><a href="/2021/9527202101-07%2021:45:05/" class="title">MySQL的万字总结（缓存，索引，Explain，事务，redo日志等）</a></p>
+                            <p class="item-date"><time datetime="2021-01-07T13:45:05.000Z" itemprop="datePublished">2021-01-07</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2020/952720210401151900/" class="thumbnail">
+    
+    
+        <span style="background-image:url(/2020/952720210401151900/1.png)" alt="面试官：你是如何评估一个线程池需要设置多少个线程" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/JAVA/">JAVA</a><i class="icon fa fa-angle-right"></i><a class="article-category-link" href="/categories/JAVA/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a></p>
+                            <p class="item-title"><a href="/2020/952720210401151900/" class="title">面试官：你是如何评估一个线程池需要设置多少个线程</a></p>
+                            <p class="item-date"><time datetime="2020-05-11T07:18:33.000Z" itemprop="datePublished">2020-05-11</time></p>
+                        </div>
+                    </li>
+                
+            </ul>
+        </div>
+    </div>
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">分类</h3>
+        <div class="widget">
+            <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/DOCKER/">DOCKER</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/ES/">ES</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/HTTP/">HTTP</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/JAVA/">JAVA</a><span class="category-list-count">18</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/JAVA/JSOUP/">JSOUP</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/JAVA/JVM/">JVM</a><span class="category-list-count">9</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/JAVA/NIO/">NIO</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/JAVA/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/JAVA/%E9%94%81/">锁</a><span class="category-list-count">2</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/MICROSERVICE/">MICROSERVICE</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/MQ/">MQ</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/MQ/RabbitMQ/">RabbitMQ</a><span class="category-list-count">1</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/MYBATIS/">MYBATIS</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/MYSQL/">MYSQL</a><span class="category-list-count">5</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/MYSQL/%E4%BC%98%E5%8C%96/">优化</a><span class="category-list-count">1</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/NGINX/">NGINX</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/SPRING/">SPRING</a><span class="category-list-count">4</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/SPRING/SPRING-SECURITY/">SPRING SECURITY</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/SPRING/SPRINGBOOT/">SPRINGBOOT</a><span class="category-list-count">1</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/SSO/">SSO</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/TCP/">TCP</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%9D%82%E9%A1%B9/">杂项</a><span class="category-list-count">1</span></li></ul>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">归档</h3>
+        <div class="widget">
+            <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">2021-04</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">2021-01</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">2020-05</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">2020-04</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">2020-03</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/02/">2020-02</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">2020-01</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">2019-12</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">2019-10</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/09/">2019-09</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">2019-08</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">2018-03</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">2018-02</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">2018-01</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">2017-08</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">2017-04</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">2017-03</a><span class="archive-list-count">5</span></li></ul>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-float">
+        <h3 class="widget-title">标签云</h3>
+        <div class="widget tagcloud">
+            <a href="/tags/BOOTFS/" style="font-size: 10px;">BOOTFS</a> <a href="/tags/BUILD/" style="font-size: 12px;">BUILD</a> <a href="/tags/COMMIT/" style="font-size: 10px;">COMMIT</a> <a href="/tags/COOKIE/" style="font-size: 10px;">COOKIE</a> <a href="/tags/DOCKER/" style="font-size: 18px;">DOCKER</a> <a href="/tags/DOCKERFILE/" style="font-size: 12px;">DOCKERFILE</a> <a href="/tags/ELASTICSEARCH/" style="font-size: 10px;">ELASTICSEARCH</a> <a href="/tags/ES/" style="font-size: 10px;">ES</a> <a href="/tags/EXPLAIN/" style="font-size: 10px;">EXPLAIN</a> <a href="/tags/HTTP/" style="font-size: 10px;">HTTP</a> <a href="/tags/IO/" style="font-size: 10px;">IO</a> <a href="/tags/JAVA/" style="font-size: 20px;">JAVA</a> <a href="/tags/JMM/" style="font-size: 10px;">JMM</a> <a href="/tags/JSON/" style="font-size: 10px;">JSON</a> <a href="/tags/JSOUP/" style="font-size: 10px;">JSOUP</a> <a href="/tags/JVM/" style="font-size: 18px;">JVM</a> <a href="/tags/JWT/" style="font-size: 10px;">JWT</a> <a href="/tags/MICROSERVICE/" style="font-size: 12px;">MICROSERVICE</a> <a href="/tags/MYBATIS/" style="font-size: 12px;">MYBATIS</a> <a href="/tags/MYSQL/" style="font-size: 16px;">MYSQL</a> <a href="/tags/NGINX/" style="font-size: 12px;">NGINX</a> <a href="/tags/NIO/" style="font-size: 10px;">NIO</a> <a href="/tags/REDO/" style="font-size: 10px;">REDO</a> <a href="/tags/REGISTRY/" style="font-size: 10px;">REGISTRY</a> <a href="/tags/RESTFUL/" style="font-size: 10px;">RESTFUL</a> <a href="/tags/ROOTFS/" style="font-size: 10px;">ROOTFS</a> <a href="/tags/ReentrantLock/" style="font-size: 10px;">ReentrantLock</a> <a href="/tags/SESSION/" style="font-size: 10px;">SESSION</a> <a href="/tags/SPRING/" style="font-size: 16px;">SPRING</a> <a href="/tags/SPRING-BOOT/" style="font-size: 10px;">SPRING BOOT</a> <a href="/tags/SPRING-SECURITY/" style="font-size: 10px;">SPRING SECURITY</a> <a href="/tags/SPRINGBOOT/" style="font-size: 10px;">SPRINGBOOT</a> <a href="/tags/SQLSESSION/" style="font-size: 10px;">SQLSESSION</a> <a href="/tags/SSO/" style="font-size: 12px;">SSO</a> <a href="/tags/TCP/" style="font-size: 16px;">TCP</a> <a href="/tags/THREAD/" style="font-size: 12px;">THREAD</a> <a href="/tags/TOKEN/" style="font-size: 10px;">TOKEN</a> <a href="/tags/VOLATILE/" style="font-size: 10px;">VOLATILE</a> <a href="/tags/ZOOKEEPER/" style="font-size: 10px;">ZOOKEEPER</a> <a href="/tags/notify/" style="font-size: 10px;">notify</a> <a href="/tags/rabbitmq/" style="font-size: 10px;">rabbitmq</a> <a href="/tags/wait/" style="font-size: 10px;">wait</a> <a href="/tags/%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B/" style="font-size: 14px;">三次握手</a> <a href="/tags/%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5/" style="font-size: 10px;">主从同步</a> <a href="/tags/%E4%B9%90%E8%A7%82%E9%94%81/" style="font-size: 10px;">乐观锁</a> <a href="/tags/%E4%BA%8B%E5%8A%A1/" style="font-size: 10px;">事务</a> <a href="/tags/%E4%BB%A3%E7%90%86/" style="font-size: 10px;">代理</a> <a href="/tags/%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B/" style="font-size: 10px;">内存模型</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" style="font-size: 10px;">分布式锁</a> <a href="/tags/%E5%8D%95%E4%BE%8B%E6%A8%A1%E5%BC%8F/" style="font-size: 10px;">单例模式</a> <a href="/tags/%E5%8D%95%E7%82%B9%E7%99%BB%E5%BD%95/" style="font-size: 10px;">单点登录</a> <a href="/tags/%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86/" style="font-size: 10px;">反向代理</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 10px;">可见性</a> <a href="/tags/%E5%91%BD%E4%BB%A4/" style="font-size: 10px;">命令</a> <a href="/tags/%E5%9B%9B%E6%AC%A1%E6%8C%A5%E6%89%8B/" style="font-size: 10px;">四次挥手</a> <a href="/tags/%E5%A4%8D%E5%88%B6/" style="font-size: 10px;">复制</a> <a href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" style="font-size: 10px;">多线程</a> <a href="/tags/%E5%AE%B9%E5%99%A8/" style="font-size: 10px;">容器</a> <a href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" style="font-size: 10px;">并发编程</a> <a href="/tags/%E5%BC%95%E7%94%A8/" style="font-size: 10px;">引用</a> <a href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" style="font-size: 12px;">微服务</a> <a href="/tags/%E6%82%B2%E8%A7%82%E9%94%81/" style="font-size: 10px;">悲观锁</a> <a href="/tags/%E6%8C%87%E4%BB%A4/" style="font-size: 10px;">指令</a> <a href="/tags/%E6%9E%B6%E6%9E%84/" style="font-size: 10px;">架构</a> <a href="/tags/%E6%9F%A5%E8%AF%A2%E6%95%88%E7%8E%87/" style="font-size: 10px;">查询效率</a> <a href="/tags/%E7%88%AC%E8%99%AB/" style="font-size: 10px;">爬虫</a> <a href="/tags/%E7%94%B5%E5%95%86/" style="font-size: 10px;">电商</a> <a href="/tags/%E7%9F%AD%E8%BF%9E%E6%8E%A5/" style="font-size: 10px;">短连接</a> <a href="/tags/%E7%B4%A2%E5%BC%95/" style="font-size: 10px;">索引</a> <a href="/tags/%E7%BA%BF%E7%A8%8B/" style="font-size: 10px;">线程</a> <a href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/" style="font-size: 10px;">线程池</a> <a href="/tags/%E8%81%8C%E8%B4%A3%E9%93%BE%E6%A8%A1%E5%BC%8F/" style="font-size: 10px;">职责链模式</a> <a href="/tags/%E8%AE%A2%E5%8D%95/" style="font-size: 10px;">订单</a> <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 10px;">设计模式</a> <a href="/tags/%E8%AF%BB%E5%86%99%E5%88%86%E7%A6%BB/" style="font-size: 10px;">读写分离</a> <a href="/tags/%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1/" style="font-size: 10px;">负载均衡</a> <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 10px;">运维</a> <a href="/tags/%E9%94%81/" style="font-size: 10px;">锁</a> <a href="/tags/%E9%95%9C%E5%83%8F/" style="font-size: 12px;">镜像</a> <a href="/tags/%E9%95%BF%E8%BF%9E%E6%8E%A5/" style="font-size: 10px;">长连接</a> <a href="/tags/%E9%9D%A2%E8%AF%95/" style="font-size: 10px;">面试</a>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">链接</h3>
+        <div class="widget">
+            <ul>
+                
+                    <li>
+                        <a href="https://www.cnblogs.com/heyonggang/" target="_blank" rel="noopener">猿人谷</a>
+                    </li>
+                
+                    <li>
+                        <a href="http://www.cnblogs.com/dolphin0520/" target="_blank" rel="noopener">Matrix海子</a>
+                    </li>
+                
+                    <li>
+                        <a href="https://www.cnblogs.com/wihainan/" target="_blank" rel="noopener">yweihainan</a>
+                    </li>
+                
+            </ul>
+        </div>
+    </div>
+
+
+            
+        
+    </div>
+</aside>
+
+                </div>
+            </div>
+        </div>
+        <footer id="footer">
+    <div class="container">
+        <div class="container-inner">
+            <a id="back-to-top" href="javascript:;"><i class="icon fa fa-angle-up"></i></a>
+            <div class="credit">
+                <h1 class="logo-wrap">
+                    <a href="/" class="logo"></a>
+                </h1>
+                <p>&copy; 2021 胡尔摩斯</p>
+                
+				<!--这一段是不蒜子的访问量统计脚本-->
+                <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+                <span id="busuanzi_container_site_pv">本站总访问量<span id="busuanzi_value_site_pv"></span>次 &nbsp;   </span>
+                <span id="busuanzi_container_site_uv">访客数<span id="busuanzi_value_site_uv"></span>人次</span>
+            </div>
+            <div class="footer-plugins">
+              
+    
+
+
+            </div>
+        </div>
+    </div>
+</footer>
+        
+    <!--  -->
+    <script src="//unpkg.com/valine"></script>
+    <script>
+        var GUEST = ['nick','mail','link'];
+        var meta = '';
+        meta = meta.split(',').filter(function (item) {
+            return GUEST.indexOf(item)>-1;
+        });
+        var avatarcdn = 'https://gravatar.loli.net/avatar/' == true;
+        new Valine({
+            el: '.vcomments',
+            notify: "",
+            verify: "",
+            appId: "XrfLUFS8GBEm6p58RABdM6Ch-gzGzoHsz",
+            appKey: "Wo4mK9i26qPw5TFP8TytPdMr",
+            placeholder: "Just Do It",
+            avatar:"identicon",
+            recordIP:"true",
+            visitor: "true"
+        });
+    </script>
+<!--  -->
+
+
+
+
+    
+        
+<script src="/libs/lightgallery/js/lightgallery.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-thumbnail.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-pager.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-autoplay.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-fullscreen.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-zoom.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-hash.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-share.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-video.min.js"></script>
+
+    
+    
+        
+<script src="/libs/justified-gallery/jquery.justifiedGallery.min.js"></script>
+
+    
+    
+
+    
+      <script data-ad-client="ca-pub-8167041820940565" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+
+    
+
+
+
+<!-- Custom Scripts -->
+
+<script src="/js/main.js"></script>
+
+
+    </div>
+</body>
+</html>

@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+
+    
+
+    
+    <title>什么是单点登陆 | 胡尔摩斯</title>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="keywords" content="JAVA,SSO,单点登录" />
+    
+    <meta name="description" content="计算机网络登录方式改革变化很大，从一开始登录一个网站或者一个软件就要输入用户名和密码到现在一个账户实现全登陆，比如你要登录支付宝、闲鱼、淘宝、千牛用一个账户即全部登录，下面就对登陆方式探讨一下！  1. 单系统登录机制1.1 http无状态协议web应用采用browser&#x2F;server架构，http作为通信协议。http是无状态协议，浏览器的每一次请求，服务器会独立处理，不与之前或之后的请求产生关">
+<meta property="og:type" content="article">
+<meta property="og:title" content="什么是单点登陆">
+<meta property="og:url" content="http://huermosi.xyz/2018/9527888003/index.html">
+<meta property="og:site_name" content="胡尔摩斯">
+<meta property="og:description" content="计算机网络登录方式改革变化很大，从一开始登录一个网站或者一个软件就要输入用户名和密码到现在一个账户实现全登陆，比如你要登录支付宝、闲鱼、淘宝、千牛用一个账户即全部登录，下面就对登陆方式探讨一下！  1. 单系统登录机制1.1 http无状态协议web应用采用browser&#x2F;server架构，http作为通信协议。http是无状态协议，浏览器的每一次请求，服务器会独立处理，不与之前或之后的请求产生关">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://huermosi.xyz/2018/9527888003/1.jfif">
+<meta property="article:published_time" content="2018-02-19T09:48:04.000Z">
+<meta property="article:modified_time" content="2021-04-10T10:10:12.631Z">
+<meta property="article:author" content="胡尔摩斯">
+<meta property="article:tag" content="JAVA">
+<meta property="article:tag" content="SSO">
+<meta property="article:tag" content="单点登录">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://huermosi.xyz/2018/9527888003/1.jfif">
+    
+
+    
+        <link rel="alternate" href="/atom.xml" title="胡尔摩斯" type="application/atom+xml" />
+    
+
+    
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/libs/titillium-web/styles.css">
+
+    
+<link rel="stylesheet" href="/libs/source-code-pro/styles.css">
+
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    
+<script src="/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    
+    
+        
+<link rel="stylesheet" href="/libs/lightgallery/css/lightgallery.min.css">
+
+    
+    
+        
+<link rel="stylesheet" href="/libs/justified-gallery/justifiedGallery.min.css">
+
+    
+    
+    
+
+
+	
+	<!--百度统计-->
+	<script>
+	var _hmt = _hmt || [];
+	(function() {
+	  var hm = document.createElement("script");
+	  hm.src = "https://hm.baidu.com/hm.js?025104cd42fa406fd2c9f41125b6d7ce";
+	  var s = document.getElementsByTagName("script")[0]; 
+	  s.parentNode.insertBefore(hm, s);
+	})();
+	</script>
+	
+	<!--百度SEO-->
+	<script>
+	(function(){
+		var bp = document.createElement('script');
+		var curProtocol = window.location.protocol.split(':')[0];
+		if (curProtocol === 'https') {
+			bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+		}
+		else {
+			bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+		}
+		var s = document.getElementsByTagName("script")[0];
+		s.parentNode.insertBefore(bp, s);
+	})();
+	</script>
+	
+	<!--Google SEO-->
+	<meta name="google-site-verification" content="eQEfd78WjFtLEjkKijFZOBmGhY2J4CI_qGL_RX8IUEs" />
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+    <div id="wrap">
+        <header id="header">
+    <div id="header-outer" class="outer">
+        <div class="container">
+            <div class="container-inner">
+                <div id="header-title">
+                    <h1 class="logo-wrap">
+                        <a href="/" class="logo"></a>
+                    </h1>
+                    
+                        <h2 class="subtitle-wrap">
+                            <p class="subtitle">胡尔摩斯</p>
+                        </h2>
+                    
+                </div>
+                <div id="header-inner" class="nav-container">
+                    <a id="main-nav-toggle" class="nav-icon fa fa-bars"></a>
+                    <div class="nav-container-inner">
+                        <ul id="main-nav">
+                            
+                                <li class="main-nav-list-item" >
+                                    <a class="main-nav-list-link" href="/">主页</a>
+                                </li>
+                            
+                                        <ul class="main-nav-list"><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/DOCKER/">DOCKER</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/ES/">ES</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/HTTP/">HTTP</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/JAVA/">JAVA</a><ul class="main-nav-list-child"><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/JAVA/JSOUP/">JSOUP</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/JAVA/JVM/">JVM</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/JAVA/NIO/">NIO</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/JAVA/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/JAVA/%E9%94%81/">锁</a></li></ul></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/MICROSERVICE/">MICROSERVICE</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/MQ/">MQ</a><ul class="main-nav-list-child"><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/MQ/RabbitMQ/">RabbitMQ</a></li></ul></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/MYBATIS/">MYBATIS</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/MYSQL/">MYSQL</a><ul class="main-nav-list-child"><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/MYSQL/%E4%BC%98%E5%8C%96/">优化</a></li></ul></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/NGINX/">NGINX</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/SPRING/">SPRING</a><ul class="main-nav-list-child"><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/SPRING/SPRING-SECURITY/">SPRING SECURITY</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/SPRING/SPRINGBOOT/">SPRINGBOOT</a></li></ul></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/SSO/">SSO</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/TCP/">TCP</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/%E6%9D%82%E9%A1%B9/">杂项</a></li></ul>
+                                    
+                        </ul>
+                        <nav id="sub-nav">
+                            <div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="搜索" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="想要查找什么..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+        <div class="container">
+            <div class="main-body container-inner">
+                <div class="main-body-inner">
+                    <section id="main">
+                        <div class="main-body-header">
+    <h1 class="header">
+    
+    <a class="page-title-link" href="/categories/SSO/">SSO</a>
+    </h1>
+</div>
+
+                        <div class="main-body-content">
+                            <article id="post-sso/what-is-sso" class="article article-single article-type-post" itemscope itemprop="blogPost">
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+    
+        <h1 class="article-title" itemprop="name">
+        什么是单点登陆
+        </h1>
+    
+
+            </header>
+        
+        
+            <div class="article-meta">
+                
+    <div class="article-date">
+      <i class="fa fa-calendar"></i>
+      <a href="/2018/9527888003/" class="article-date">
+         <time datetime="2018-02-19T09:48:04.000Z" itemprop="datePublished">2018-02-19</time>
+      </a>
+    </div>
+
+
+                
+
+                
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/JAVA/" rel="tag">JAVA</a>, <a class="tag-link" href="/tags/SSO/" rel="tag">SSO</a>, <a class="tag-link" href="/tags/%E5%8D%95%E7%82%B9%E7%99%BB%E5%BD%95/" rel="tag">单点登录</a>
+    </div>
+
+                
+   <span id="/2018/9527888003/" class="leancloud-visitors" data-flag-title="什么是单点登陆">
+   <i class="fa fa-eye"></i>
+   <span class="post-meta-item-text">阅读: </span>
+   <i class="leancloud-visitors-count">-</i>
+   </span>
+
+
+                
+   <div class="article-counter">
+      <i class="fa fa-file-word-o"></i>
+      <span class="post-count-item-text">字数: </span>
+      <span class="post-count">3.4k</span>
+      <!-- 
+	  <i class="fa fa-clock-o"></i>
+      <span class="post-time-item-text">阅读时长: </span>
+      <span class="post-count">12 分钟 </span>
+	  -->
+   </div>
+
+
+            </div>
+        
+        
+        <div class="article-entry" itemprop="articleBody">
+            <p>计算机网络登录方式改革变化很大，从一开始登录一个网站或者一个软件就要输入用户名和密码到现在一个账户实现全登陆，比如你要登录支付宝、闲鱼、淘宝、千牛用一个账户即全部登录，下面就对登陆方式探讨一下！</p>
+<p><img src="/2018/9527888003/1.jfif" alt title="点击放大"></p>
+<h4 id="1-单系统登录机制"><a href="#1-单系统登录机制" class="headerlink" title="1. 单系统登录机制"></a>1. 单系统登录机制</h4><h5 id="1-1-http无状态协议"><a href="#1-1-http无状态协议" class="headerlink" title="1.1 http无状态协议"></a>1.1 http无状态协议</h5><p>web应用采用browser/server架构，http作为通信协议。http是无状态协议，浏览器的每一次请求，服务器会独立处理，不与之前或之后的请求产生关联，但这也同时意味着任何用户都能通过浏览器访问服务器资源，如果想保护服务器的某些资源，必须限制浏览器请求；要限制浏览器请求，必须鉴别浏览器请求，响应合法请求，忽略非法请求；要鉴别浏览器请求，必须清楚浏览器请求状态，这就牵涉到下一个问题会话机制。</p>
+<h5 id="1-2-会话机制"><a href="#1-2-会话机制" class="headerlink" title="1.2 会话机制"></a>1.2 会话机制</h5><p>浏览器第一次请求服务器，服务器创建一个会话，并将会话的id作为响应的一部分发送给浏览器，浏览器存储会话id，并在后续第二次和第三次请求中带上会话id，服务器取得请求中的会话id就知道是不是同一个用户了，用到两种方式： 第一种方式是请求参数cookie将会话id作为每一个请求的参数，服务器接收请求自然能解析参数获得会话id，并借此判断是否来自同一会话，很明显这种方式不安全。那就用第二种方式，浏览器自己来维护这个会话id吧，每次发送http请求时浏览器自动发送会话id，cookie机制正好适用这种情况。cookie是浏览器用来存储少量数据的一种机制，数据以”key/value“形式存储，浏览器发送http请求时自动附带cookie信息。</p>
+<p><img src="/2018/9527888003/2.jfif" alt title="点击放大"></p>
+<h5 id="1-3-登录状态"><a href="#1-3-登录状态" class="headerlink" title="1.3 登录状态"></a>1.3 登录状态</h5><p>有了会话机制，登录状态就好明白了，假设浏览器第一次请求服务器需要输入用户名与密码验证身份，服务器拿到用户名密码去数据库比对，正确的话说明当前持有这个会话的用户是合法用户，应该将这个会话标记为“已授权”或者“已登录”等等之类的状态，既然是会话的状态，自然要保存在会话对象中，tomcat在会话对象中设置登录状态如下：用户再次访问时，tomcat在会话对象中查看登录状态： 实现每次请求受保护资源时都会检查会话对象中的登录状态，只有 isLogin=true 的会话才能访问，登录机制因此而实现。</p>
+<p><img src="/2018/9527888003/3.jfif" alt title="点击放大"></p>
+<h4 id="2-多系统的复杂性"><a href="#2-多系统的复杂性" class="headerlink" title="2. 多系统的复杂性"></a>2. 多系统的复杂性</h4><p>web系统早已从久远的单系统发展成为如今由多系统组成的应用群，面对如此众多的系统，用户难道要一个一个登录、然后一个一个注销吗？系统由单系统发展成多系统组成的应用群，复杂性应该由系统内部承担，而不是用户。无论web系统内部多么复杂，对用户而言都是一个统一的整体，也就是说用户访问web系统的整个应用群与访问单个系统一样，登录/注销只要一次就够了，虽然单系统的登录解决方案很完美，但对于多系统应用群已经不再适用了，因为单系统登录解决方案的核心是cookie，cookie携带会话id在浏览器与服务器之间维护会话状态，但cookie是有限制的，这个限制就是cookie的域（通常对应网站的域名），浏览器发送http请求时会自动携带与该域匹配的cookie，而不是所有cookie。 那为什么不将web应用群中所有子系统的域名统一在一个顶级域名下，例如“*.baidu.com”，然后将它们的cookie域设置为“baidu.com”，这种做法理论上是可以的，甚至早期很多多系统登录就采用这种同域名共享cookie的方式。然而可行并不代表好，共享cookie的方式存在众多局限性。</p>
+<h5 id="2-1-应用群域名必须统一。"><a href="#2-1-应用群域名必须统一。" class="headerlink" title="2.1 应用群域名必须统一。"></a>2.1 应用群域名必须统一。</h5><h5 id="2-2-应用群各系统使用的技术（至少是web服务器）要相同，不然cookie的key值（tomcat为JSESSIONID）不同，无法维持会话，共享cookie的方式是无法实现跨语言技术平台登录的，比如java、php、-net系统之间。"><a href="#2-2-应用群各系统使用的技术（至少是web服务器）要相同，不然cookie的key值（tomcat为JSESSIONID）不同，无法维持会话，共享cookie的方式是无法实现跨语言技术平台登录的，比如java、php、-net系统之间。" class="headerlink" title="2.2 应用群各系统使用的技术（至少是web服务器）要相同，不然cookie的key值（tomcat为JSESSIONID）不同，无法维持会话，共享cookie的方式是无法实现跨语言技术平台登录的，比如java、php、.net系统之间。"></a>2.2 应用群各系统使用的技术（至少是web服务器）要相同，不然cookie的key值（tomcat为JSESSIONID）不同，无法维持会话，共享cookie的方式是无法实现跨语言技术平台登录的，比如java、php、.net系统之间。</h5><h5 id="2-3-cookie本身不安全，因此我们需要一种全新的登录方式来实现多系统应用群的登录，这就是我们的主题单点登录。"><a href="#2-3-cookie本身不安全，因此我们需要一种全新的登录方式来实现多系统应用群的登录，这就是我们的主题单点登录。" class="headerlink" title="2.3 cookie本身不安全，因此我们需要一种全新的登录方式来实现多系统应用群的登录，这就是我们的主题单点登录。"></a>2.3 cookie本身不安全，因此我们需要一种全新的登录方式来实现多系统应用群的登录，这就是我们的主题单点登录。</h5><p><img src="/2018/9527888003/4.jfif" alt title="点击放大"></p>
+<h4 id="3-单点登录"><a href="#3-单点登录" class="headerlink" title="3. 单点登录"></a>3. 单点登录</h4><p>单点登陆是指在多系统应用群中登录一个系统，便可在其他所有系统中得到授权而无需再次登录，包括单点登录与单点注销两部分。</p>
+<h5 id="3-1-单点登录"><a href="#3-1-单点登录" class="headerlink" title="3.1 单点登录"></a>3.1 单点登录</h5><p>相比于单系统登录，sso需要一个独立的认证中心，只有认证中心能接受用户的用户名密码等安全信息，其他系统不提供登录入口，只接受认证中心的间接授权。间接授权通过令牌实现，sso认证中心验证用户的用户名密码没问题，创建授权令牌，在接下来的跳转过程中，授权令牌作为参数发送给各个子系统，子系统拿到令牌，即得到了授权，可以借此创建局部会话，局部会话登录方式与单系统的登录方式相同。这个过程也就是单点登录的原理。</p>
+<p><img src="/2018/9527888003/5.jfif" alt title="点击放大"></p>
+<p>举例说明，用户访问系统1的受保护资源，系统1发现用户未登录，跳转至sso认证中心，并将自己的地址作为参数sso认证中心发现用户未登录，将用户引导至登录页面，用户输入用户名密码提交登录申请sso认证中心校验用户信息，创建用户与sso认证中心之间的会话，称为全局会话，同时创建授权令牌sso认证中心带着令牌跳转回最初的请求地址（系统1）系统1拿到令牌，去sso认证中心校验令牌是否有效sso认证中心校验令牌，返回有效，注册系统1，系统1使用该令牌创建与用户的会话，称为局部会话，返回受保护资源，用户访问系统2的受保护资源，系统2发现用户未登录，跳转至sso认证中心，并将自己的地址作为参数sso认证中心发现用户已登录，跳转回系统2的地址，并附上令牌系统2拿到令牌，去sso认证中心校验令牌是否有效，sso认证中心校验令牌，返回有效，注册系统2，系统2使用该令牌创建与用户的局部会话，返回受保护资源，用户登录成功之后，会与sso认证中心及各个子系统建立会话，用户与sso认证中心建立的会话称为全局会话，用户与各个子系统建立的会话称为局部会话，局部会话建立之后，用户访问子系统受保护资源将不再通过sso认证中心。</p>
+<p>全局会话与局部会话有如下约束关系：局部会话存在，全局会话一定存在，全局会话存在，局部会话不一定存在，全局会话销毁，局部会话必须销毁，你可以通对支付宝系列等网站的登录过程加深对单点登录的理解。</p>
+<p><img src="/2018/9527888003/6.jfif" alt title="点击放大"></p>
+<h5 id="3-2-单点注销"><a href="#3-2-单点注销" class="headerlink" title="3.2 单点注销"></a>3.2 单点注销</h5><p>单点登录自然也要单点注销，在一个子系统中注销，所有子系统的会话都将被销毁，认证中心一直监听全局会话的状态，一旦全局会话销毁，监听器将通知所有注册系统执行注销操作。</p>
+<p>举例说明，如用户向系统1发起注销请求，系统1根据用户与系统1建立的会话id拿到令牌，向sso认证中心发起注销请求，sso认证中心校验令牌有效，销毁全局会话，同时取出所有用此令牌注册的系统地址，sso认证中心向所有注册系统发起注销请求，各注册系统接收sso认证中心的注销请求，销毁局部会话，sso认证中心引导用户至登录页面。</p>
+<p><img src="/2018/9527888003/7.jfif" alt title="点击放大"></p>
+<h5 id="3-3-部署"><a href="#3-3-部署" class="headerlink" title="3.3 部署"></a>3.3 部署</h5><p>单点登录涉及sso认证中心与众子系统，子系统与sso认证中心需要通信以交换令牌、校验令牌及发起注销请求，因而子系统必须集成sso的客户端，sso认证中心则是sso服务端，整个单点登录过程实质是sso客户端与服务端通信的过程，认证中心与sso客户端通信方式有多种，这里以简单好用的httpClient为例，web service、rpc、restful api都可以。</p>
+<h5 id="3-4-实现"><a href="#3-4-实现" class="headerlink" title="3.4 实现"></a>3.4 实现</h5><p>简要介绍下基于java的实现过程，明白了原理，可以自己实现，sso采用客户端/服务端架构，举例说明sso-client与sso-server要实现的功能，sso-client拦截子系统未登录用户请求，跳转至sso认证中心接收并存储sso认证中心发送的令牌与sso-server通信，校验令牌的有效性，建立局部会话，拦截用户注销请求，向sso认证中心发送注销请求，接收sso认证中心发出的注销请求，销毁局部会话，sso-server验证用户的登录信息，创建全局会话，创建授权令牌，与sso-client通信发送令牌，校验sso-client令牌有效性，系统注册，接收sso-client注销请求，注销所有会话 。</p>
+<p><img src="/2018/9527888003/8.jfif" alt title="点击放大"></p>
+<h4 id="4-举例说明实如何现sso"><a href="#4-举例说明实如何现sso" class="headerlink" title="4. 举例说明实如何现sso"></a>4. 举例说明实如何现sso</h4><h5 id="4-1-sso-client拦截未登录请求java拦截请求的方式有servlet、filter、listener三种方式，我们采用filter。在sso-client中新建LoginFilter-java类并实现Filter接口，在doFilter-方法中加入对未登录用户的拦截。"><a href="#4-1-sso-client拦截未登录请求java拦截请求的方式有servlet、filter、listener三种方式，我们采用filter。在sso-client中新建LoginFilter-java类并实现Filter接口，在doFilter-方法中加入对未登录用户的拦截。" class="headerlink" title="4.1 sso-client拦截未登录请求java拦截请求的方式有servlet、filter、listener三种方式，我们采用filter。在sso-client中新建LoginFilter.java类并实现Filter接口，在doFilter()方法中加入对未登录用户的拦截。"></a>4.1 sso-client拦截未登录请求java拦截请求的方式有servlet、filter、listener三种方式，我们采用filter。在sso-client中新建LoginFilter.java类并实现Filter接口，在doFilter()方法中加入对未登录用户的拦截。</h5><h5 id="4-2-sso-server拦截未登录请求，拦截从sso-client跳转至sso认证中心的未登录请求，跳转至登录页面，这个过程与sso-client完全一样。"><a href="#4-2-sso-server拦截未登录请求，拦截从sso-client跳转至sso认证中心的未登录请求，跳转至登录页面，这个过程与sso-client完全一样。" class="headerlink" title="4.2 sso-server拦截未登录请求，拦截从sso-client跳转至sso认证中心的未登录请求，跳转至登录页面，这个过程与sso-client完全一样。"></a>4.2 sso-server拦截未登录请求，拦截从sso-client跳转至sso认证中心的未登录请求，跳转至登录页面，这个过程与sso-client完全一样。</h5><h5 id="4-3-sso-server验证用户登录信息，用户在登录页面输入用户名密码，请求登录，sso认证中心校验用户信息，校验成功，将会话状态标记为“已登录”。"><a href="#4-3-sso-server验证用户登录信息，用户在登录页面输入用户名密码，请求登录，sso认证中心校验用户信息，校验成功，将会话状态标记为“已登录”。" class="headerlink" title="4.3 sso-server验证用户登录信息，用户在登录页面输入用户名密码，请求登录，sso认证中心校验用户信息，校验成功，将会话状态标记为“已登录”。"></a>4.3 sso-server验证用户登录信息，用户在登录页面输入用户名密码，请求登录，sso认证中心校验用户信息，校验成功，将会话状态标记为“已登录”。</h5><h5 id="4-4-sso-server创建授权令牌，授权令牌是一串随机字符，以什么样的方式生成都没有关系，只要不重复、不易伪造即可。"><a href="#4-4-sso-server创建授权令牌，授权令牌是一串随机字符，以什么样的方式生成都没有关系，只要不重复、不易伪造即可。" class="headerlink" title="4.4 sso-server创建授权令牌，授权令牌是一串随机字符，以什么样的方式生成都没有关系，只要不重复、不易伪造即可。"></a>4.4 sso-server创建授权令牌，授权令牌是一串随机字符，以什么样的方式生成都没有关系，只要不重复、不易伪造即可。</h5><h5 id="4-5-sso-client取得令牌并校验，sso认证中心登录后，跳转回子系统并附上令牌，子系统（sso-client）取得令牌，然后去sso认证中心校验。"><a href="#4-5-sso-client取得令牌并校验，sso认证中心登录后，跳转回子系统并附上令牌，子系统（sso-client）取得令牌，然后去sso认证中心校验。" class="headerlink" title="4.5 sso-client取得令牌并校验，sso认证中心登录后，跳转回子系统并附上令牌，子系统（sso-client）取得令牌，然后去sso认证中心校验。"></a>4.5 sso-client取得令牌并校验，sso认证中心登录后，跳转回子系统并附上令牌，子系统（sso-client）取得令牌，然后去sso认证中心校验。</h5><h5 id="4-6-sso-server接收并处理校验令牌请求，用户在sso认证中心登录成功后，sso-server创建授权令牌并存储该令牌，所以sso-server对令牌的校验就是去查找这个令牌是否存在以及是否过期，令牌校验成功后sso-server将发送校验请求的系统注册到sso认证中心（就是存储起来的意思），令牌与注册系统地址通常存储在key-value数据库（如redis）中，redis可以为key设置有效时间也就是令牌的有效期。redis运行在内存中，速度非常快，正好sso-server不需要持久化任何数据。令牌与注册系统地址可以用下图描述的结构存储在redis中，可能你会问为什么要存储这些系统的地址？如果不存储，注销的时候就麻烦了，用户向sso认证中心提交注销请求，sso认证中心注销全局会话，但不知道哪些系统用此全局会话建立了自己的局部会话，也不知道要向哪些子系统发送注销请求注销局部会话。"><a href="#4-6-sso-server接收并处理校验令牌请求，用户在sso认证中心登录成功后，sso-server创建授权令牌并存储该令牌，所以sso-server对令牌的校验就是去查找这个令牌是否存在以及是否过期，令牌校验成功后sso-server将发送校验请求的系统注册到sso认证中心（就是存储起来的意思），令牌与注册系统地址通常存储在key-value数据库（如redis）中，redis可以为key设置有效时间也就是令牌的有效期。redis运行在内存中，速度非常快，正好sso-server不需要持久化任何数据。令牌与注册系统地址可以用下图描述的结构存储在redis中，可能你会问为什么要存储这些系统的地址？如果不存储，注销的时候就麻烦了，用户向sso认证中心提交注销请求，sso认证中心注销全局会话，但不知道哪些系统用此全局会话建立了自己的局部会话，也不知道要向哪些子系统发送注销请求注销局部会话。" class="headerlink" title="4.6 sso-server接收并处理校验令牌请求，用户在sso认证中心登录成功后，sso-server创建授权令牌并存储该令牌，所以sso-server对令牌的校验就是去查找这个令牌是否存在以及是否过期，令牌校验成功后sso-server将发送校验请求的系统注册到sso认证中心（就是存储起来的意思），令牌与注册系统地址通常存储在key-value数据库（如redis）中，redis可以为key设置有效时间也就是令牌的有效期。redis运行在内存中，速度非常快，正好sso-server不需要持久化任何数据。令牌与注册系统地址可以用下图描述的结构存储在redis中，可能你会问为什么要存储这些系统的地址？如果不存储，注销的时候就麻烦了，用户向sso认证中心提交注销请求，sso认证中心注销全局会话，但不知道哪些系统用此全局会话建立了自己的局部会话，也不知道要向哪些子系统发送注销请求注销局部会话。"></a>4.6 sso-server接收并处理校验令牌请求，用户在sso认证中心登录成功后，sso-server创建授权令牌并存储该令牌，所以sso-server对令牌的校验就是去查找这个令牌是否存在以及是否过期，令牌校验成功后sso-server将发送校验请求的系统注册到sso认证中心（就是存储起来的意思），令牌与注册系统地址通常存储在key-value数据库（如redis）中，redis可以为key设置有效时间也就是令牌的有效期。redis运行在内存中，速度非常快，正好sso-server不需要持久化任何数据。令牌与注册系统地址可以用下图描述的结构存储在redis中，可能你会问为什么要存储这些系统的地址？如果不存储，注销的时候就麻烦了，用户向sso认证中心提交注销请求，sso认证中心注销全局会话，但不知道哪些系统用此全局会话建立了自己的局部会话，也不知道要向哪些子系统发送注销请求注销局部会话。</h5><h5 id="4-7-sso-client校验令牌成功创建局部会话，令牌校验成功后，sso-client将当前局部会话标记为“已登录”，sso-client还需将当前会话id与令牌绑定，表示这个会话的登录状态与令牌相关，此关系可以用java的hashmap保存，保存的数据用来处理sso认证中心发来的注销请求。"><a href="#4-7-sso-client校验令牌成功创建局部会话，令牌校验成功后，sso-client将当前局部会话标记为“已登录”，sso-client还需将当前会话id与令牌绑定，表示这个会话的登录状态与令牌相关，此关系可以用java的hashmap保存，保存的数据用来处理sso认证中心发来的注销请求。" class="headerlink" title="4.7 sso-client校验令牌成功创建局部会话，令牌校验成功后，sso-client将当前局部会话标记为“已登录”，sso-client还需将当前会话id与令牌绑定，表示这个会话的登录状态与令牌相关，此关系可以用java的hashmap保存，保存的数据用来处理sso认证中心发来的注销请求。"></a>4.7 sso-client校验令牌成功创建局部会话，令牌校验成功后，sso-client将当前局部会话标记为“已登录”，sso-client还需将当前会话id与令牌绑定，表示这个会话的登录状态与令牌相关，此关系可以用java的hashmap保存，保存的数据用来处理sso认证中心发来的注销请求。</h5><h5 id="4-8-注销过程，用户向子系统发送带有“logout”参数的请求（注销请求），sso-client拦截器拦截该请求，向sso认证中心发起注销请求。sso认证中心也用同样的方式识别出sso-client的请求是注销请求（带有“logout”参数），sso认证中心注销全局会话。sso认证中心有一个全局会话的监听器，一旦全局会话注销，将通知所有注册系统注销。"><a href="#4-8-注销过程，用户向子系统发送带有“logout”参数的请求（注销请求），sso-client拦截器拦截该请求，向sso认证中心发起注销请求。sso认证中心也用同样的方式识别出sso-client的请求是注销请求（带有“logout”参数），sso认证中心注销全局会话。sso认证中心有一个全局会话的监听器，一旦全局会话注销，将通知所有注册系统注销。" class="headerlink" title="4.8 注销过程，用户向子系统发送带有“logout”参数的请求（注销请求），sso-client拦截器拦截该请求，向sso认证中心发起注销请求。sso认证中心也用同样的方式识别出sso-client的请求是注销请求（带有“logout”参数），sso认证中心注销全局会话。sso认证中心有一个全局会话的监听器，一旦全局会话注销，将通知所有注册系统注销。"></a>4.8 注销过程，用户向子系统发送带有“logout”参数的请求（注销请求），sso-client拦截器拦截该请求，向sso认证中心发起注销请求。sso认证中心也用同样的方式识别出sso-client的请求是注销请求（带有“logout”参数），sso认证中心注销全局会话。sso认证中心有一个全局会话的监听器，一旦全局会话注销，将通知所有注册系统注销。</h5><p>亲，你对单点登陆有了比较清晰的了解了吗！</p>
+<blockquote>
+<p>本文转载自<a href="https://www.toutiao.com/i6523892951779639812/" target="_blank" rel="noopener">黑猫大V</a>头条，原文连接点<a href="https://www.toutiao.com/i6523892951779639812/" target="_blank" rel="noopener">这里</a>，版权归原作者所有，转载目的是为了避免以后找不到。</p>
+</blockquote>
+
+        </div>
+        <footer class="article-footer">
+            
+
+    <div class="bdsharebuttonbox">
+    <a href="#" class="bds_more" data-cmd="more">分享到：</a>
+    <a href="#" class="bds_qzone" data-cmd="qzone" title="分享到QQ空间">QQ空间</a>
+    <a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博">新浪微博</a>
+    <a href="#" class="bds_tqq" data-cmd="tqq" title="分享到腾讯微博">腾讯微博</a>
+    <a href="#" class="bds_renren" data-cmd="renren" title="分享到人人网">人人网</a>
+    <a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信">微信</a>
+</div>
+<script>
+window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"16"},"share":{"bdSize":16}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='//bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+<style>
+    .bdshare_popup_box {
+        border-radius: 4px;
+        border: #e1e1e1 solid 1px;
+    }
+    .bdshare-button-style0-16 a,
+    .bdshare-button-style0-16 .bds_more {
+        padding-left: 20px;
+        margin: 6px 10px 6px 0;
+    }
+    .bdshare_dialog_list a,
+    .bdshare_popup_list a,
+    .bdshare_popup_bottom a {
+        font-family: 'Microsoft Yahei';
+    }
+    .bdshare_popup_top {
+        display: none;
+    }
+    .bdshare_popup_bottom {
+        height: auto;
+        padding: 5px;
+    }
+</style>
+
+
+
+        </footer>
+    </div>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "author": {
+            "@type": "Person",
+            "name": "胡尔摩斯"
+        },
+        "headline": "什么是单点登陆",
+        "image": "http://huermosi.xyz/2018/9527888003/1.jfif",
+        "keywords": "JAVA SSO 单点登录",
+        "genre": "SSO",
+        "datePublished": "2018-02-19",
+        "dateCreated": "2018-02-19",
+        "dateModified": "2021-04-10",
+        "url": "http://huermosi.xyz/2018/9527888003/",
+        "description": "计算机网络登录方式改革变化很大，从一开始登录一个网站或者一个软件就要输入用户名和密码到现在一个账户实现全登陆，比如你要登录支付宝、闲鱼、淘宝、千牛用一个账户即全部登录，下面就对登陆方式探讨一下！
+
+1. 单系统登录机制1.1 http无状态协议web应用采用browser/server架构，http作为通信协议。http是无状态协议，浏览器的每一次请求，服务器会独立处理，不与之前或之后的请求产生关",
+        "wordCount": 171
+    }
+</script>
+
+</article>
+
+    <section id="comments">
+    
+        <!--  -->
+    <!-- Valine -->
+    <!-- <div class="vcomments"></div> -->
+<!--  -->
+
+    
+    </section>
+
+
+
+                        </div>
+                    </section>
+                    <aside id="sidebar">
+    <a class="sidebar-toggle" title="Expand Sidebar"><i class="toggle icon"></i></a>
+    <div class="sidebar-top">
+        <p>关注我 :</p>
+        <ul class="social-links">
+            
+                
+                <li>
+                    <a class="social-tooltip" title="toutiao" href="https://www.toutiao.com/c/user/79188316021/" target="_blank" rel="noopener">
+						
+							<i class="icon fa fa-tumblr"></i>
+						
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a class="social-tooltip" title="xigua" href="https://www.ixigua.com/home/79188316021/" target="_blank" rel="noopener">
+						
+							<i class="icon fa fa-youtube-play"></i>
+						
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a class="social-tooltip" title="rss" href="/atom.xml" target="_blank" rel="noopener">
+						
+							<i class="icon fa fa-rss"></i>
+						
+                    </a>
+                </li>
+                
+            
+        </ul>
+    </div>
+    
+        
+<nav id="article-nav">
+    
+        <a href="/2018/9527888004/" id="article-nav-newer" class="article-nav-link-wrap">
+        <strong class="article-nav-caption">下一篇</strong>
+        <p class="article-nav-title">
+        
+            一张图了解微服务架构核心知识点
+        
+        </p>
+        <i class="icon fa fa-chevron-right" id="icon-chevron-right"></i>
+    </a>
+    
+    
+        <a href="/2018/9527888014/" id="article-nav-older" class="article-nav-link-wrap">
+        <strong class="article-nav-caption">上一篇</strong>
+        <p class="article-nav-title">从Elasticsearch来看分布式系统架构设计</p>
+        <i class="icon fa fa-chevron-left" id="icon-chevron-left"></i>
+        </a>
+    
+</nav>
+
+    
+    <div class="widgets-container">
+        
+            
+                
+
+            
+                
+    <div class="widget-wrap">
+        <h3 class="widget-title">最新文章</h3>
+        <div class="widget">
+            <ul id="recent-post" class="">
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2021/9527888015/" class="thumbnail">
+    
+    
+        <span style="background-image:url(/2021/9527888015/1.png)" alt="SqlSessionTemplate是如何保证MyBatis中SqlSession的线程安全的" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/MYBATIS/">MYBATIS</a></p>
+                            <p class="item-title"><a href="/2021/9527888015/" class="title">SqlSessionTemplate是如何保证MyBatis中SqlSession的线程安全的</a></p>
+                            <p class="item-date"><time datetime="2021-04-15T09:43:20.000Z" itemprop="datePublished">2021-04-15</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2021/9527202104222212000/" class="thumbnail">
+    
+    
+        <span style="background-image:url(/2021/9527202104222212000/1.png)" alt="有点狠有点猛，我用责任链模式重构了业务代码" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/JAVA/">JAVA</a></p>
+                            <p class="item-title"><a href="/2021/9527202104222212000/" class="title">有点狠有点猛，我用责任链模式重构了业务代码</a></p>
+                            <p class="item-date"><time datetime="2021-04-07T13:28:07.000Z" itemprop="datePublished">2021-04-07</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2021/952720210072154/" class="thumbnail">
+    
+    
+        <span style="background-image:url(/2021/952720210072154/1.png)" alt="SpringBoot国际化实战，实现语言的自由切换" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/SPRING/">SPRING</a><i class="icon fa fa-angle-right"></i><a class="article-category-link" href="/categories/SPRING/SPRINGBOOT/">SPRINGBOOT</a></p>
+                            <p class="item-title"><a href="/2021/952720210072154/" class="title">SpringBoot国际化实战，实现语言的自由切换</a></p>
+                            <p class="item-date"><time datetime="2021-04-07T13:02:00.000Z" itemprop="datePublished">2021-04-07</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2021/9527202101-07%2021:45:05/" class="thumbnail">
+    
+    
+        <span style="background-image:url(/2021/9527202101-07%2021:45:05/1.png)" alt="MySQL的万字总结（缓存，索引，Explain，事务，redo日志等）" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/MYSQL/">MYSQL</a></p>
+                            <p class="item-title"><a href="/2021/9527202101-07%2021:45:05/" class="title">MySQL的万字总结（缓存，索引，Explain，事务，redo日志等）</a></p>
+                            <p class="item-date"><time datetime="2021-01-07T13:45:05.000Z" itemprop="datePublished">2021-01-07</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2020/952720210401151900/" class="thumbnail">
+    
+    
+        <span style="background-image:url(/2020/952720210401151900/1.png)" alt="面试官：你是如何评估一个线程池需要设置多少个线程" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/JAVA/">JAVA</a><i class="icon fa fa-angle-right"></i><a class="article-category-link" href="/categories/JAVA/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a></p>
+                            <p class="item-title"><a href="/2020/952720210401151900/" class="title">面试官：你是如何评估一个线程池需要设置多少个线程</a></p>
+                            <p class="item-date"><time datetime="2020-05-11T07:18:33.000Z" itemprop="datePublished">2020-05-11</time></p>
+                        </div>
+                    </li>
+                
+            </ul>
+        </div>
+    </div>
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">分类</h3>
+        <div class="widget">
+            <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/DOCKER/">DOCKER</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/ES/">ES</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/HTTP/">HTTP</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/JAVA/">JAVA</a><span class="category-list-count">18</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/JAVA/JSOUP/">JSOUP</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/JAVA/JVM/">JVM</a><span class="category-list-count">9</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/JAVA/NIO/">NIO</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/JAVA/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/JAVA/%E9%94%81/">锁</a><span class="category-list-count">2</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/MICROSERVICE/">MICROSERVICE</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/MQ/">MQ</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/MQ/RabbitMQ/">RabbitMQ</a><span class="category-list-count">1</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/MYBATIS/">MYBATIS</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/MYSQL/">MYSQL</a><span class="category-list-count">5</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/MYSQL/%E4%BC%98%E5%8C%96/">优化</a><span class="category-list-count">1</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/NGINX/">NGINX</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/SPRING/">SPRING</a><span class="category-list-count">4</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/SPRING/SPRING-SECURITY/">SPRING SECURITY</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/SPRING/SPRINGBOOT/">SPRINGBOOT</a><span class="category-list-count">1</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/SSO/">SSO</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/TCP/">TCP</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%9D%82%E9%A1%B9/">杂项</a><span class="category-list-count">1</span></li></ul>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">归档</h3>
+        <div class="widget">
+            <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">2021-04</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">2021-01</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">2020-05</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">2020-04</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">2020-03</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/02/">2020-02</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">2020-01</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">2019-12</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">2019-10</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/09/">2019-09</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">2019-08</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">2018-03</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">2018-02</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">2018-01</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">2017-08</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">2017-04</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">2017-03</a><span class="archive-list-count">5</span></li></ul>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-float">
+        <h3 class="widget-title">标签云</h3>
+        <div class="widget tagcloud">
+            <a href="/tags/BOOTFS/" style="font-size: 10px;">BOOTFS</a> <a href="/tags/BUILD/" style="font-size: 12px;">BUILD</a> <a href="/tags/COMMIT/" style="font-size: 10px;">COMMIT</a> <a href="/tags/COOKIE/" style="font-size: 10px;">COOKIE</a> <a href="/tags/DOCKER/" style="font-size: 18px;">DOCKER</a> <a href="/tags/DOCKERFILE/" style="font-size: 12px;">DOCKERFILE</a> <a href="/tags/ELASTICSEARCH/" style="font-size: 10px;">ELASTICSEARCH</a> <a href="/tags/ES/" style="font-size: 10px;">ES</a> <a href="/tags/EXPLAIN/" style="font-size: 10px;">EXPLAIN</a> <a href="/tags/HTTP/" style="font-size: 10px;">HTTP</a> <a href="/tags/IO/" style="font-size: 10px;">IO</a> <a href="/tags/JAVA/" style="font-size: 20px;">JAVA</a> <a href="/tags/JMM/" style="font-size: 10px;">JMM</a> <a href="/tags/JSON/" style="font-size: 10px;">JSON</a> <a href="/tags/JSOUP/" style="font-size: 10px;">JSOUP</a> <a href="/tags/JVM/" style="font-size: 18px;">JVM</a> <a href="/tags/JWT/" style="font-size: 10px;">JWT</a> <a href="/tags/MICROSERVICE/" style="font-size: 12px;">MICROSERVICE</a> <a href="/tags/MYBATIS/" style="font-size: 12px;">MYBATIS</a> <a href="/tags/MYSQL/" style="font-size: 16px;">MYSQL</a> <a href="/tags/NGINX/" style="font-size: 12px;">NGINX</a> <a href="/tags/NIO/" style="font-size: 10px;">NIO</a> <a href="/tags/REDO/" style="font-size: 10px;">REDO</a> <a href="/tags/REGISTRY/" style="font-size: 10px;">REGISTRY</a> <a href="/tags/RESTFUL/" style="font-size: 10px;">RESTFUL</a> <a href="/tags/ROOTFS/" style="font-size: 10px;">ROOTFS</a> <a href="/tags/ReentrantLock/" style="font-size: 10px;">ReentrantLock</a> <a href="/tags/SESSION/" style="font-size: 10px;">SESSION</a> <a href="/tags/SPRING/" style="font-size: 16px;">SPRING</a> <a href="/tags/SPRING-BOOT/" style="font-size: 10px;">SPRING BOOT</a> <a href="/tags/SPRING-SECURITY/" style="font-size: 10px;">SPRING SECURITY</a> <a href="/tags/SPRINGBOOT/" style="font-size: 10px;">SPRINGBOOT</a> <a href="/tags/SQLSESSION/" style="font-size: 10px;">SQLSESSION</a> <a href="/tags/SSO/" style="font-size: 12px;">SSO</a> <a href="/tags/TCP/" style="font-size: 16px;">TCP</a> <a href="/tags/THREAD/" style="font-size: 12px;">THREAD</a> <a href="/tags/TOKEN/" style="font-size: 10px;">TOKEN</a> <a href="/tags/VOLATILE/" style="font-size: 10px;">VOLATILE</a> <a href="/tags/ZOOKEEPER/" style="font-size: 10px;">ZOOKEEPER</a> <a href="/tags/notify/" style="font-size: 10px;">notify</a> <a href="/tags/rabbitmq/" style="font-size: 10px;">rabbitmq</a> <a href="/tags/wait/" style="font-size: 10px;">wait</a> <a href="/tags/%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B/" style="font-size: 14px;">三次握手</a> <a href="/tags/%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5/" style="font-size: 10px;">主从同步</a> <a href="/tags/%E4%B9%90%E8%A7%82%E9%94%81/" style="font-size: 10px;">乐观锁</a> <a href="/tags/%E4%BA%8B%E5%8A%A1/" style="font-size: 10px;">事务</a> <a href="/tags/%E4%BB%A3%E7%90%86/" style="font-size: 10px;">代理</a> <a href="/tags/%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B/" style="font-size: 10px;">内存模型</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" style="font-size: 10px;">分布式锁</a> <a href="/tags/%E5%8D%95%E4%BE%8B%E6%A8%A1%E5%BC%8F/" style="font-size: 10px;">单例模式</a> <a href="/tags/%E5%8D%95%E7%82%B9%E7%99%BB%E5%BD%95/" style="font-size: 10px;">单点登录</a> <a href="/tags/%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86/" style="font-size: 10px;">反向代理</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 10px;">可见性</a> <a href="/tags/%E5%91%BD%E4%BB%A4/" style="font-size: 10px;">命令</a> <a href="/tags/%E5%9B%9B%E6%AC%A1%E6%8C%A5%E6%89%8B/" style="font-size: 10px;">四次挥手</a> <a href="/tags/%E5%A4%8D%E5%88%B6/" style="font-size: 10px;">复制</a> <a href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" style="font-size: 10px;">多线程</a> <a href="/tags/%E5%AE%B9%E5%99%A8/" style="font-size: 10px;">容器</a> <a href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" style="font-size: 10px;">并发编程</a> <a href="/tags/%E5%BC%95%E7%94%A8/" style="font-size: 10px;">引用</a> <a href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" style="font-size: 12px;">微服务</a> <a href="/tags/%E6%82%B2%E8%A7%82%E9%94%81/" style="font-size: 10px;">悲观锁</a> <a href="/tags/%E6%8C%87%E4%BB%A4/" style="font-size: 10px;">指令</a> <a href="/tags/%E6%9E%B6%E6%9E%84/" style="font-size: 10px;">架构</a> <a href="/tags/%E6%9F%A5%E8%AF%A2%E6%95%88%E7%8E%87/" style="font-size: 10px;">查询效率</a> <a href="/tags/%E7%88%AC%E8%99%AB/" style="font-size: 10px;">爬虫</a> <a href="/tags/%E7%94%B5%E5%95%86/" style="font-size: 10px;">电商</a> <a href="/tags/%E7%9F%AD%E8%BF%9E%E6%8E%A5/" style="font-size: 10px;">短连接</a> <a href="/tags/%E7%B4%A2%E5%BC%95/" style="font-size: 10px;">索引</a> <a href="/tags/%E7%BA%BF%E7%A8%8B/" style="font-size: 10px;">线程</a> <a href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/" style="font-size: 10px;">线程池</a> <a href="/tags/%E8%81%8C%E8%B4%A3%E9%93%BE%E6%A8%A1%E5%BC%8F/" style="font-size: 10px;">职责链模式</a> <a href="/tags/%E8%AE%A2%E5%8D%95/" style="font-size: 10px;">订单</a> <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 10px;">设计模式</a> <a href="/tags/%E8%AF%BB%E5%86%99%E5%88%86%E7%A6%BB/" style="font-size: 10px;">读写分离</a> <a href="/tags/%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1/" style="font-size: 10px;">负载均衡</a> <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 10px;">运维</a> <a href="/tags/%E9%94%81/" style="font-size: 10px;">锁</a> <a href="/tags/%E9%95%9C%E5%83%8F/" style="font-size: 12px;">镜像</a> <a href="/tags/%E9%95%BF%E8%BF%9E%E6%8E%A5/" style="font-size: 10px;">长连接</a> <a href="/tags/%E9%9D%A2%E8%AF%95/" style="font-size: 10px;">面试</a>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">链接</h3>
+        <div class="widget">
+            <ul>
+                
+                    <li>
+                        <a href="https://www.cnblogs.com/heyonggang/" target="_blank" rel="noopener">猿人谷</a>
+                    </li>
+                
+                    <li>
+                        <a href="http://www.cnblogs.com/dolphin0520/" target="_blank" rel="noopener">Matrix海子</a>
+                    </li>
+                
+                    <li>
+                        <a href="https://www.cnblogs.com/wihainan/" target="_blank" rel="noopener">yweihainan</a>
+                    </li>
+                
+            </ul>
+        </div>
+    </div>
+
+
+            
+        
+    </div>
+</aside>
+
+                </div>
+            </div>
+        </div>
+        <footer id="footer">
+    <div class="container">
+        <div class="container-inner">
+            <a id="back-to-top" href="javascript:;"><i class="icon fa fa-angle-up"></i></a>
+            <div class="credit">
+                <h1 class="logo-wrap">
+                    <a href="/" class="logo"></a>
+                </h1>
+                <p>&copy; 2021 胡尔摩斯</p>
+                
+				<!--这一段是不蒜子的访问量统计脚本-->
+                <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+                <span id="busuanzi_container_site_pv">本站总访问量<span id="busuanzi_value_site_pv"></span>次 &nbsp;   </span>
+                <span id="busuanzi_container_site_uv">访客数<span id="busuanzi_value_site_uv"></span>人次</span>
+            </div>
+            <div class="footer-plugins">
+              
+    
+
+
+            </div>
+        </div>
+    </div>
+</footer>
+        
+    <!--  -->
+    <script src="//unpkg.com/valine"></script>
+    <script>
+        var GUEST = ['nick','mail','link'];
+        var meta = '';
+        meta = meta.split(',').filter(function (item) {
+            return GUEST.indexOf(item)>-1;
+        });
+        var avatarcdn = 'https://gravatar.loli.net/avatar/' == true;
+        new Valine({
+            el: '.vcomments',
+            notify: "",
+            verify: "",
+            appId: "XrfLUFS8GBEm6p58RABdM6Ch-gzGzoHsz",
+            appKey: "Wo4mK9i26qPw5TFP8TytPdMr",
+            placeholder: "Just Do It",
+            avatar:"identicon",
+            recordIP:"true",
+            visitor: "true"
+        });
+    </script>
+<!--  -->
+
+
+
+
+    
+        
+<script src="/libs/lightgallery/js/lightgallery.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-thumbnail.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-pager.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-autoplay.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-fullscreen.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-zoom.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-hash.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-share.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-video.min.js"></script>
+
+    
+    
+        
+<script src="/libs/justified-gallery/jquery.justifiedGallery.min.js"></script>
+
+    
+    
+
+    
+      <script data-ad-client="ca-pub-8167041820940565" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+
+    
+
+
+
+<!-- Custom Scripts -->
+
+<script src="/js/main.js"></script>
+
+
+    </div>
+</body>
+</html>

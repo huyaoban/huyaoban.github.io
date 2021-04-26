@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+
+    
+
+    
+    <title>Cookie/Session/Token的区别 | 胡尔摩斯</title>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="keywords" content="HTTP,COOKIE,SESSION,TOKEN" />
+    
+    <meta name="description" content="在Web开发领域，相信大家对于Cookie和Session都很熟悉，Cookie和Session都是会话保持技术的解决方案。随着技术的发展，Token机制出现在我们面前，不过很多开发者对于Token和Cookie、Session的区别及使用场景分辨不清。 Cookie和Session的用途要知道我们访问网站都是通过HTTP协议或HTTPS协议来完成的，HTTP协议它本身是无状态的协议（即：服务器无">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Cookie&#x2F;Session&#x2F;Token的区别">
+<meta property="og:url" content="http://huermosi.xyz/2018/95270322145054/index.html">
+<meta property="og:site_name" content="胡尔摩斯">
+<meta property="og:description" content="在Web开发领域，相信大家对于Cookie和Session都很熟悉，Cookie和Session都是会话保持技术的解决方案。随着技术的发展，Token机制出现在我们面前，不过很多开发者对于Token和Cookie、Session的区别及使用场景分辨不清。 Cookie和Session的用途要知道我们访问网站都是通过HTTP协议或HTTPS协议来完成的，HTTP协议它本身是无状态的协议（即：服务器无">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://huermosi.xyz/2018/95270322145054/pic1.jpg">
+<meta property="article:published_time" content="2018-03-22T06:50:54.000Z">
+<meta property="article:modified_time" content="2021-04-08T08:49:31.737Z">
+<meta property="article:author" content="胡尔摩斯">
+<meta property="article:tag" content="HTTP">
+<meta property="article:tag" content="COOKIE">
+<meta property="article:tag" content="SESSION">
+<meta property="article:tag" content="TOKEN">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://huermosi.xyz/2018/95270322145054/pic1.jpg">
+    
+
+    
+        <link rel="alternate" href="/atom.xml" title="胡尔摩斯" type="application/atom+xml" />
+    
+
+    
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/libs/titillium-web/styles.css">
+
+    
+<link rel="stylesheet" href="/libs/source-code-pro/styles.css">
+
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    
+<script src="/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    
+    
+        
+<link rel="stylesheet" href="/libs/lightgallery/css/lightgallery.min.css">
+
+    
+    
+        
+<link rel="stylesheet" href="/libs/justified-gallery/justifiedGallery.min.css">
+
+    
+    
+    
+
+
+	
+	<!--百度统计-->
+	<script>
+	var _hmt = _hmt || [];
+	(function() {
+	  var hm = document.createElement("script");
+	  hm.src = "https://hm.baidu.com/hm.js?025104cd42fa406fd2c9f41125b6d7ce";
+	  var s = document.getElementsByTagName("script")[0]; 
+	  s.parentNode.insertBefore(hm, s);
+	})();
+	</script>
+	
+	<!--百度SEO-->
+	<script>
+	(function(){
+		var bp = document.createElement('script');
+		var curProtocol = window.location.protocol.split(':')[0];
+		if (curProtocol === 'https') {
+			bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+		}
+		else {
+			bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+		}
+		var s = document.getElementsByTagName("script")[0];
+		s.parentNode.insertBefore(bp, s);
+	})();
+	</script>
+	
+	<!--Google SEO-->
+	<meta name="google-site-verification" content="eQEfd78WjFtLEjkKijFZOBmGhY2J4CI_qGL_RX8IUEs" />
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+    <div id="wrap">
+        <header id="header">
+    <div id="header-outer" class="outer">
+        <div class="container">
+            <div class="container-inner">
+                <div id="header-title">
+                    <h1 class="logo-wrap">
+                        <a href="/" class="logo"></a>
+                    </h1>
+                    
+                        <h2 class="subtitle-wrap">
+                            <p class="subtitle">胡尔摩斯</p>
+                        </h2>
+                    
+                </div>
+                <div id="header-inner" class="nav-container">
+                    <a id="main-nav-toggle" class="nav-icon fa fa-bars"></a>
+                    <div class="nav-container-inner">
+                        <ul id="main-nav">
+                            
+                                <li class="main-nav-list-item" >
+                                    <a class="main-nav-list-link" href="/">主页</a>
+                                </li>
+                            
+                                        <ul class="main-nav-list"><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/DOCKER/">DOCKER</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/ES/">ES</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/HTTP/">HTTP</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/JAVA/">JAVA</a><ul class="main-nav-list-child"><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/JAVA/JSOUP/">JSOUP</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/JAVA/JVM/">JVM</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/JAVA/NIO/">NIO</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/JAVA/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/JAVA/%E9%94%81/">锁</a></li></ul></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/MICROSERVICE/">MICROSERVICE</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/MQ/">MQ</a><ul class="main-nav-list-child"><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/MQ/RabbitMQ/">RabbitMQ</a></li></ul></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/MYBATIS/">MYBATIS</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/MYSQL/">MYSQL</a><ul class="main-nav-list-child"><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/MYSQL/%E4%BC%98%E5%8C%96/">优化</a></li></ul></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/NGINX/">NGINX</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/SPRING/">SPRING</a><ul class="main-nav-list-child"><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/SPRING/SPRING-SECURITY/">SPRING SECURITY</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/SPRING/SPRINGBOOT/">SPRINGBOOT</a></li></ul></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/SSO/">SSO</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/TCP/">TCP</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/%E6%9D%82%E9%A1%B9/">杂项</a></li></ul>
+                                    
+                        </ul>
+                        <nav id="sub-nav">
+                            <div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="搜索" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="想要查找什么..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+        <div class="container">
+            <div class="main-body container-inner">
+                <div class="main-body-inner">
+                    <section id="main">
+                        <div class="main-body-header">
+    <h1 class="header">
+    
+    <a class="page-title-link" href="/categories/HTTP/">HTTP</a>
+    </h1>
+</div>
+
+                        <div class="main-body-content">
+                            <article id="post-sessioncookie/cookie-session-token" class="article article-single article-type-post" itemscope itemprop="blogPost">
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+    
+        <h1 class="article-title" itemprop="name">
+        Cookie/Session/Token的区别
+        </h1>
+    
+
+            </header>
+        
+        
+            <div class="article-meta">
+                
+    <div class="article-date">
+      <i class="fa fa-calendar"></i>
+      <a href="/2018/95270322145054/" class="article-date">
+         <time datetime="2018-03-22T06:50:54.000Z" itemprop="datePublished">2018-03-22</time>
+      </a>
+    </div>
+
+
+                
+
+                
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/COOKIE/" rel="tag">COOKIE</a>, <a class="tag-link" href="/tags/HTTP/" rel="tag">HTTP</a>, <a class="tag-link" href="/tags/SESSION/" rel="tag">SESSION</a>, <a class="tag-link" href="/tags/TOKEN/" rel="tag">TOKEN</a>
+    </div>
+
+                
+   <span id="/2018/95270322145054/" class="leancloud-visitors" data-flag-title="Cookie/Session/Token的区别">
+   <i class="fa fa-eye"></i>
+   <span class="post-meta-item-text">阅读: </span>
+   <i class="leancloud-visitors-count">-</i>
+   </span>
+
+
+                
+   <div class="article-counter">
+      <i class="fa fa-file-word-o"></i>
+      <span class="post-count-item-text">字数: </span>
+      <span class="post-count">3.1k</span>
+      <!-- 
+	  <i class="fa fa-clock-o"></i>
+      <span class="post-time-item-text">阅读时长: </span>
+      <span class="post-count">10 分钟 </span>
+	  -->
+   </div>
+
+
+            </div>
+        
+        
+        <div class="article-entry" itemprop="articleBody">
+            <p>在Web开发领域，相信大家对于Cookie和Session都很熟悉，Cookie和Session都是会话保持技术的解决方案。随着技术的发展，Token机制出现在我们面前，不过很多开发者对于Token和Cookie、Session的区别及使用场景分辨不清。</p>
+<h4 id="Cookie和Session的用途"><a href="#Cookie和Session的用途" class="headerlink" title="Cookie和Session的用途"></a>Cookie和Session的用途</h4><p>要知道我们访问网站都是通过HTTP协议或HTTPS协议来完成的，HTTP协议它本身是无状态的协议（即：服务器无法分辨哪些请求是来源于同个客户）。而业务层面会涉及到客户端与服务器端的交互（同网站下多个页面间能共享数据），此时服务器端必须要保持会话状态，这样才能进行用户身份的鉴别。</p>
+<p>由于HTTP无状态的特性，如果要实话客户端和服务器端的会话保持，那就需要其它机制来实现，于是Cookie和Session应运而生。</p>
+<p><img src="/2018/95270322145054/pic1.jpg" alt title="点击放大"></p>
+<p>通常情况下，Session和Cookie是搭配在一起使用的。</p>
+<h4 id="Token是什么"><a href="#Token是什么" class="headerlink" title="Token是什么"></a>Token是什么</h4><p>上面说到的Session和Cookie机制来保持会话，会存在一个问题：客户端浏览器只要保存自己的SessionID即可，而服务器却要保存所有用户的Session信息，这对于服务器来说开销较大，而且不利用服务器的扩展（比如服务器集群时，Session如何同步存储就是个问题）！</p>
+<p>于是有人思考，如果把Session信息让客户端来保管而且无法伪造不就可以解决这个问题了？进而有了Token机制。</p>
+<p>Token俗称为“令牌”，它的构成是：</p>
+<ul>
+<li>uid：用户唯一身份标识</li>
+<li>timestamp：当前时间戳</li>
+<li>sign：签名字符串，防止第三方伪造数据；签名密钥是存储在服务器端的，其它人无法知道</li>
+<li>其它附加参数。</li>
+</ul>
+<h4 id="Token机制下的认证流程"><a href="#Token机制下的认证流程" class="headerlink" title="Token机制下的认证流程"></a>Token机制下的认证流程</h4><p>Token机制其实和Cookie机制极其相似，主要有以下流程：</p>
+<ol>
+<li>用户登录进行身份认证，认证成功后服务器端生成Token返回给客户端；</li>
+<li>客户端接收到Token后保存在客户端（可保存在Cookie、LocalStorage、SessionStorage中）；</li>
+<li>客户端再次请求服务器端时，将Token作为请求头放入Headers中；</li>
+<li>服务器端接收请求头中的Token，将用户参数按照既定规则再进行一次签名，两次签名若一致则认为成功，反之数据存在篡改请求失败。</li>
+</ol>
+<p><img src="/2018/95270322145054/pic2.jpg" alt="生成签名示例图" title="点击放大"></p>
+<p><img src="/2018/95270322145054/pic3.jpg" alt="验证签名示例图" title="点击放大"></p>
+<h4 id="Token与Cookie-Session的区别"><a href="#Token与Cookie-Session的区别" class="headerlink" title="Token与Cookie+Session的区别"></a>Token与Cookie+Session的区别</h4><p>Cookie其实也充当的是令牌作用，但它是“有状态”的；而Token令牌是无状态的，更利于分布式部署。</p>
+<hr>
+<h4 id="Session和Cookie"><a href="#Session和Cookie" class="headerlink" title="Session和Cookie"></a>Session和Cookie</h4><p>在讲Token之前，先简单说说什么是Session和Cookie。</p>
+<ul>
+<li>首先要知道HTTP请求是无状态的，也就是不知道这一次的请求和上一次请求是否有关系，比如我们登录一个系统的时候，验证用户名密码之后，打开系统各个页面的时候就不需要再进行登录操作了，直到我们主动退出登录或超时退出登录；这里为了避免访问每个都登录一下，就要用到Session、Cookie。</li>
+<li>Cookie是在客户端(浏览器)保存用户信息的一种机制；而且每种浏览器存储大小会有一些差异，一般不超过4KB；</li>
+<li>Session是在服务端保存，可以用于记录客户状态，比如我们经常会用Session保存客户的基本信息、权限信息等；用户第一次登录之后，服务器就会创建一个session，浏览器再次访问时，只需要从该Session中查找该客户的信息就可以了。</li>
+</ul>
+<p><img src="/2018/95270322145054/pic4.jpg" alt title="点击放大"></p>
+<h4 id="Token"><a href="#Token" class="headerlink" title="Token"></a>Token</h4><p>但是这里会有个问题，服务器要保存所有用户的Session信息，开销会很大，如果在分布式的架构下，就需要考虑Session共享的问题，需要做额外的设计和开发，例如把session中的信息保存到Redis中进行共享；所以因为这个原因，有人考虑这些信息是否可以让客户端保存，可以保存到任何地方，并且保证其安全性，于是就有了Token。</p>
+<p>Token是服务端生成的一串字符串，可以看做客户端进行请求的一个令牌。</p>
+<ul>
+<li>当客户端第一次访问服务端，服务端会根据传过来的唯一标识userId，运用一些加密算法，生成一个Token，客户端下次请求时，只需要带上Token，服务器收到请求后，会验证这个Token。</li>
+<li>有些公司会建设统一登录系统（单点登录），客户端先去这个系统获取Token，验证通过再拿着这些Token去访问其他系统；API Gateway也可以提供类似的功能，我们公司就是这样，客户端接入的时候，先向网关获取Token，验证通过了才能访问被授权的接口，并且一段时间后要重新或者Token。</li>
+</ul>
+<p><img src="/2018/95270322145054/pic5.jpg" alt title="点击放大"></p>
+<h4 id="基于Token的认证流程"><a href="#基于Token的认证流程" class="headerlink" title="基于Token的认证流程"></a>基于Token的认证流程</h4><p>整体的流程是这样的：</p>
+<ol>
+<li>客户端使用用户名、密码做身份验证；</li>
+<li>服务端收到请求后进行身份验证；(也可能是统一登录平台、网关)</li>
+<li>验证成功后，服务端会签发一个Token返回给客户端；</li>
+<li>客户端收到Token以后可以把它存储起来（可以放在）；每次向服务端发送请求的时候，都要带着Token；</li>
+<li>Token会有过期时间，过期后需要重新进行验证；</li>
+<li>服务端收到请求，会验证客户端请求里面的Token，验证成功，才会响应客户端的请求；</li>
+</ol>
+<p><img src="/2018/95270322145054/pic6.jpg" alt title="点击放大"></p>
+<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><ul>
+<li>Cookie：保存在浏览器种，有大小限制，有状态；</li>
+<li>Session：保存在服务器中，服务器有资源开销，分布式、跨系统不好实现；</li>
+<li>Token：客户端可以将Token保存到任何地方，无限制，无状态，利于分布式部署。</li>
+</ul>
+<hr>
+<h4 id="由Session到Token的身份验证演变过程理解Session、Cookie、Token"><a href="#由Session到Token的身份验证演变过程理解Session、Cookie、Token" class="headerlink" title="由Session到Token的身份验证演变过程理解Session、Cookie、Token"></a>由Session到Token的身份验证演变过程理解Session、Cookie、Token</h4><p>本文将从Web应用 由传统身份验证到基于Token的身份验证的演变过程的角度，介绍Session、Cookie、Token。</p>
+<p>很久以前，Web 应用基本用作文档的浏览，如网络黄页。既然仅仅是浏览，因此服务器不需要记录具体用户在某一段时间里都浏览了哪些文档，每次请求都是一个新的HTTP协议，对服务器来说都是全新的。</p>
+<h4 id="基于Session的身份验证"><a href="#基于Session的身份验证" class="headerlink" title="基于Session的身份验证"></a>基于Session的身份验证</h4><p>随着交互式Web应用的兴起，比如，购物等需要登录的网站。引出了一个新的问题，那就是要记录哪些用户登录了系统进行了哪些操作，即要管理会话（什么是会话？简单的讲如果用户需要登录，那么就可以简单的理解为会话，如果不需要登录，那么就是简单的连接。），比如，不同用户将不同商品加入到购物车中， 也就是说必须把每个用户区分开。因为HTTP请求是无状态的，所以想出了一个办法，那就是给每个用户配发一个会话标识(Session id)，简单的讲就是一个既不会重复，又不容易被找到规律以仿造的随机字符串，使得每个用户的收到的会话标识都不一样， 每次用户从客户端向服务端发起HTTP请求的时候，把这个字符串给一并发送过来， 这样服务端就能区分开谁是谁了，至于客户端（浏览器）如何保存这个“身份标识”，一般默认采用 Cookie 的方式，这个会话标识(Session id)会存在客户端的Cookie中。</p>
+<p>虽然这样解决了区分用户的问题，但又引发了一个新的问题，那就是每个用户（客户端）只需要保存自己的会话标识(Session id)，而服务端则要保存所有用户的会话标识(Session id)。 如果访问服务端的用户逐渐变多， 就需要保存成千上万，甚至几千万个，这对服务器说是一个难以接受的开销 。 再比如，服务端是由2台服务器组成的一个集群， 小明通过服务器A登录了系统， 那session id会保存在服务器A上， 假设小明的下一次请求被转发到服务器B怎么办？ 服务器B可没有小明 的 session id。</p>
+<p>可能会有人讲，如果使小明登录时，始终在服务器A上进行登录（sticky session），岂不解决了这个问题？那如果服务器A挂掉怎么办呢？ 还是会将小明的请求转发到服务器B上。</p>
+<p>如此一来，那只能做集群间的 session 复制共享了， 就是把 session id 在两个机器之间进行复制，如下图，但这对服务器的性能和内存提出了巨大的挑战。</p>
+<p><img src="/2018/95270322145054/pic7.jpg" alt title="点击放大"></p>
+<p>因此，又想到如果将所有用户的Session集中存储呢，也就想到了缓存服务Memcached——由于 Memcached 是分布式的内存对象缓存系统，因此可以用来实现 Session 同步。把session id 集中存储到一台服务器上， 所有的服务器都来访问这个地方的数据， 如此就避免了复制的方式， 但是这种“集万千宠爱于一身”使得又出现了单点故障的可能， 就是说这个负责存储 session 的服务器挂了， 所有用户都得重新登录一遍， 这是用户难以接受的。</p>
+<p><img src="/2018/95270322145054/pic8.jpg" alt title="点击放大"></p>
+<p>那么索性存储Session的服务器也搞成集群，增加其可靠性，避免单点故障，但不管如何，Session 引发出来的问题层出不穷。</p>
+<p>于是有人就在思考， 为什么服务端必须要保存这session呢， 只让每个客户端去保存不行吗？可是服务端如果不保存这些session id ，又将如何验证客户端发送的 session id 的确是服务端生成的呢？ 如果不验证，服务端无法判断是否是合法登录的用户，对，这里的问题是验证， session 只是解决这个验证问题的而产生的一个解决方案，是否还有其它方案呢？</p>
+<h4 id="基于Token-的身份验证"><a href="#基于Token-的身份验证" class="headerlink" title="基于Token 的身份验证"></a>基于Token 的身份验证</h4><p>例如， 小明已经登录了系统，服务端给他发一个令牌(Token)， 里边包含了小明的 user id， 后续小明再次通过 Http 请求访问服务器的时候， 把这个 Token 通过 Http header 带过来不就可以了。</p>
+<p>服务端需要验证 Token是自己生成的，而非伪造的。假如不验证任何人都可以伪造，那么这个令牌(token)和 session id没有本质区别，如何让别人伪造不了？那就对数据做一个签名（Sign）吧， 比如说服务端用 HMAC-SHA256 加密算法，再加上一个只有服务端才知道的密钥， 对数据做一个签名， 把这个签名和数据一起作为 Token 发给客户端， 客户端收到 Token 以后可以把它存储起来，比如存储在 Cookie 里或者 Local Storage 中，由于密钥除了服务端任何其他用户都不知道， 就无法伪造令牌(Token)。</p>
+<p><img src="/2018/95270322145054/pic9.jpg" alt title="点击放大"></p>
+<p>如此一来，服务端就不需要保存 Token 了， 当小明把这个Token发给服务端时，服务端使用相同的HMAC-SHA256 算法和相同的密钥，对数据再计算一次签名， 和 Token 中的签名做个对比， 如果相同，说明小明已经登录过了， 即验证成功。若不相同， 那么说明这个请求是伪造的。</p>
+<p><img src="/2018/95270322145054/pic10.jpg" alt title="点击放大"></p>
+<p>这样一来，服务端只需要生成 Token，而不需要保存Token，只是验证Token就好了，也就实现了时间换取空间（CPU计算时间换取session 存储空间）。没了session id的限制，当用户访问量增大，直接加机器就可以轻松地做水平扩展，也极大的提高了可扩展性。</p>
+
+        </div>
+        <footer class="article-footer">
+            
+
+    <div class="bdsharebuttonbox">
+    <a href="#" class="bds_more" data-cmd="more">分享到：</a>
+    <a href="#" class="bds_qzone" data-cmd="qzone" title="分享到QQ空间">QQ空间</a>
+    <a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博">新浪微博</a>
+    <a href="#" class="bds_tqq" data-cmd="tqq" title="分享到腾讯微博">腾讯微博</a>
+    <a href="#" class="bds_renren" data-cmd="renren" title="分享到人人网">人人网</a>
+    <a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信">微信</a>
+</div>
+<script>
+window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"16"},"share":{"bdSize":16}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='//bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+<style>
+    .bdshare_popup_box {
+        border-radius: 4px;
+        border: #e1e1e1 solid 1px;
+    }
+    .bdshare-button-style0-16 a,
+    .bdshare-button-style0-16 .bds_more {
+        padding-left: 20px;
+        margin: 6px 10px 6px 0;
+    }
+    .bdshare_dialog_list a,
+    .bdshare_popup_list a,
+    .bdshare_popup_bottom a {
+        font-family: 'Microsoft Yahei';
+    }
+    .bdshare_popup_top {
+        display: none;
+    }
+    .bdshare_popup_bottom {
+        height: auto;
+        padding: 5px;
+    }
+</style>
+
+
+
+        </footer>
+    </div>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "author": {
+            "@type": "Person",
+            "name": "胡尔摩斯"
+        },
+        "headline": "Cookie/Session/Token的区别",
+        "image": "http://huermosi.xyz/2018/95270322145054/pic1.jpg",
+        "keywords": "HTTP COOKIE SESSION TOKEN",
+        "genre": "HTTP",
+        "datePublished": "2018-03-22",
+        "dateCreated": "2018-03-22",
+        "dateModified": "2021-04-08",
+        "url": "http://huermosi.xyz/2018/95270322145054/",
+        "description": "在Web开发领域，相信大家对于Cookie和Session都很熟悉，Cookie和Session都是会话保持技术的解决方案。随着技术的发展，Token机制出现在我们面前，不过很多开发者对于Token和Cookie、Session的区别及使用场景分辨不清。
+Cookie和Session的用途要知道我们访问网站都是通过HTTP协议或HTTPS协议来完成的，HTTP协议它本身是无状态的协议（即：服务器无",
+        "wordCount": 179
+    }
+</script>
+
+</article>
+
+    <section id="comments">
+    
+        <!--  -->
+    <!-- Valine -->
+    <!-- <div class="vcomments"></div> -->
+<!--  -->
+
+    
+    </section>
+
+
+
+                        </div>
+                    </section>
+                    <aside id="sidebar">
+    <a class="sidebar-toggle" title="Expand Sidebar"><i class="toggle icon"></i></a>
+    <div class="sidebar-top">
+        <p>关注我 :</p>
+        <ul class="social-links">
+            
+                
+                <li>
+                    <a class="social-tooltip" title="toutiao" href="https://www.toutiao.com/c/user/79188316021/" target="_blank" rel="noopener">
+						
+							<i class="icon fa fa-tumblr"></i>
+						
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a class="social-tooltip" title="xigua" href="https://www.ixigua.com/home/79188316021/" target="_blank" rel="noopener">
+						
+							<i class="icon fa fa-youtube-play"></i>
+						
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a class="social-tooltip" title="rss" href="/atom.xml" target="_blank" rel="noopener">
+						
+							<i class="icon fa fa-rss"></i>
+						
+                    </a>
+                </li>
+                
+            
+        </ul>
+    </div>
+    
+        
+<nav id="article-nav">
+    
+        <a href="/2018/95270327100012/" id="article-nav-newer" class="article-nav-link-wrap">
+        <strong class="article-nav-caption">下一篇</strong>
+        <p class="article-nav-title">
+        
+            说一下公平锁和非公平锁的区别？
+        
+        </p>
+        <i class="icon fa fa-chevron-right" id="icon-chevron-right"></i>
+    </a>
+    
+    
+        <a href="/2018/9527888013/" id="article-nav-older" class="article-nav-link-wrap">
+        <strong class="article-nav-caption">上一篇</strong>
+        <p class="article-nav-title">Spring面试必问题</p>
+        <i class="icon fa fa-chevron-left" id="icon-chevron-left"></i>
+        </a>
+    
+</nav>
+
+    
+    <div class="widgets-container">
+        
+            
+                
+
+            
+                
+    <div class="widget-wrap">
+        <h3 class="widget-title">最新文章</h3>
+        <div class="widget">
+            <ul id="recent-post" class="">
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2021/9527888015/" class="thumbnail">
+    
+    
+        <span style="background-image:url(/2021/9527888015/1.png)" alt="SqlSessionTemplate是如何保证MyBatis中SqlSession的线程安全的" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/MYBATIS/">MYBATIS</a></p>
+                            <p class="item-title"><a href="/2021/9527888015/" class="title">SqlSessionTemplate是如何保证MyBatis中SqlSession的线程安全的</a></p>
+                            <p class="item-date"><time datetime="2021-04-15T09:43:20.000Z" itemprop="datePublished">2021-04-15</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2021/9527202104222212000/" class="thumbnail">
+    
+    
+        <span style="background-image:url(/2021/9527202104222212000/1.png)" alt="有点狠有点猛，我用责任链模式重构了业务代码" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/JAVA/">JAVA</a></p>
+                            <p class="item-title"><a href="/2021/9527202104222212000/" class="title">有点狠有点猛，我用责任链模式重构了业务代码</a></p>
+                            <p class="item-date"><time datetime="2021-04-07T13:28:07.000Z" itemprop="datePublished">2021-04-07</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2021/952720210072154/" class="thumbnail">
+    
+    
+        <span style="background-image:url(/2021/952720210072154/1.png)" alt="SpringBoot国际化实战，实现语言的自由切换" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/SPRING/">SPRING</a><i class="icon fa fa-angle-right"></i><a class="article-category-link" href="/categories/SPRING/SPRINGBOOT/">SPRINGBOOT</a></p>
+                            <p class="item-title"><a href="/2021/952720210072154/" class="title">SpringBoot国际化实战，实现语言的自由切换</a></p>
+                            <p class="item-date"><time datetime="2021-04-07T13:02:00.000Z" itemprop="datePublished">2021-04-07</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2021/9527202101-07%2021:45:05/" class="thumbnail">
+    
+    
+        <span style="background-image:url(/2021/9527202101-07%2021:45:05/1.png)" alt="MySQL的万字总结（缓存，索引，Explain，事务，redo日志等）" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/MYSQL/">MYSQL</a></p>
+                            <p class="item-title"><a href="/2021/9527202101-07%2021:45:05/" class="title">MySQL的万字总结（缓存，索引，Explain，事务，redo日志等）</a></p>
+                            <p class="item-date"><time datetime="2021-01-07T13:45:05.000Z" itemprop="datePublished">2021-01-07</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2020/952720210401151900/" class="thumbnail">
+    
+    
+        <span style="background-image:url(/2020/952720210401151900/1.png)" alt="面试官：你是如何评估一个线程池需要设置多少个线程" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/JAVA/">JAVA</a><i class="icon fa fa-angle-right"></i><a class="article-category-link" href="/categories/JAVA/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a></p>
+                            <p class="item-title"><a href="/2020/952720210401151900/" class="title">面试官：你是如何评估一个线程池需要设置多少个线程</a></p>
+                            <p class="item-date"><time datetime="2020-05-11T07:18:33.000Z" itemprop="datePublished">2020-05-11</time></p>
+                        </div>
+                    </li>
+                
+            </ul>
+        </div>
+    </div>
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">分类</h3>
+        <div class="widget">
+            <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/DOCKER/">DOCKER</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/ES/">ES</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/HTTP/">HTTP</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/JAVA/">JAVA</a><span class="category-list-count">18</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/JAVA/JSOUP/">JSOUP</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/JAVA/JVM/">JVM</a><span class="category-list-count">9</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/JAVA/NIO/">NIO</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/JAVA/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/JAVA/%E9%94%81/">锁</a><span class="category-list-count">2</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/MICROSERVICE/">MICROSERVICE</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/MQ/">MQ</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/MQ/RabbitMQ/">RabbitMQ</a><span class="category-list-count">1</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/MYBATIS/">MYBATIS</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/MYSQL/">MYSQL</a><span class="category-list-count">5</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/MYSQL/%E4%BC%98%E5%8C%96/">优化</a><span class="category-list-count">1</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/NGINX/">NGINX</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/SPRING/">SPRING</a><span class="category-list-count">4</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/SPRING/SPRING-SECURITY/">SPRING SECURITY</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/SPRING/SPRINGBOOT/">SPRINGBOOT</a><span class="category-list-count">1</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/SSO/">SSO</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/TCP/">TCP</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%9D%82%E9%A1%B9/">杂项</a><span class="category-list-count">1</span></li></ul>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">归档</h3>
+        <div class="widget">
+            <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">2021-04</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">2021-01</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">2020-05</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">2020-04</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">2020-03</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/02/">2020-02</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">2020-01</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">2019-12</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">2019-10</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/09/">2019-09</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">2019-08</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">2018-03</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">2018-02</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">2018-01</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">2017-08</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">2017-04</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">2017-03</a><span class="archive-list-count">5</span></li></ul>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-float">
+        <h3 class="widget-title">标签云</h3>
+        <div class="widget tagcloud">
+            <a href="/tags/BOOTFS/" style="font-size: 10px;">BOOTFS</a> <a href="/tags/BUILD/" style="font-size: 12px;">BUILD</a> <a href="/tags/COMMIT/" style="font-size: 10px;">COMMIT</a> <a href="/tags/COOKIE/" style="font-size: 10px;">COOKIE</a> <a href="/tags/DOCKER/" style="font-size: 18px;">DOCKER</a> <a href="/tags/DOCKERFILE/" style="font-size: 12px;">DOCKERFILE</a> <a href="/tags/ELASTICSEARCH/" style="font-size: 10px;">ELASTICSEARCH</a> <a href="/tags/ES/" style="font-size: 10px;">ES</a> <a href="/tags/EXPLAIN/" style="font-size: 10px;">EXPLAIN</a> <a href="/tags/HTTP/" style="font-size: 10px;">HTTP</a> <a href="/tags/IO/" style="font-size: 10px;">IO</a> <a href="/tags/JAVA/" style="font-size: 20px;">JAVA</a> <a href="/tags/JMM/" style="font-size: 10px;">JMM</a> <a href="/tags/JSON/" style="font-size: 10px;">JSON</a> <a href="/tags/JSOUP/" style="font-size: 10px;">JSOUP</a> <a href="/tags/JVM/" style="font-size: 18px;">JVM</a> <a href="/tags/JWT/" style="font-size: 10px;">JWT</a> <a href="/tags/MICROSERVICE/" style="font-size: 12px;">MICROSERVICE</a> <a href="/tags/MYBATIS/" style="font-size: 12px;">MYBATIS</a> <a href="/tags/MYSQL/" style="font-size: 16px;">MYSQL</a> <a href="/tags/NGINX/" style="font-size: 12px;">NGINX</a> <a href="/tags/NIO/" style="font-size: 10px;">NIO</a> <a href="/tags/REDO/" style="font-size: 10px;">REDO</a> <a href="/tags/REGISTRY/" style="font-size: 10px;">REGISTRY</a> <a href="/tags/RESTFUL/" style="font-size: 10px;">RESTFUL</a> <a href="/tags/ROOTFS/" style="font-size: 10px;">ROOTFS</a> <a href="/tags/ReentrantLock/" style="font-size: 10px;">ReentrantLock</a> <a href="/tags/SESSION/" style="font-size: 10px;">SESSION</a> <a href="/tags/SPRING/" style="font-size: 16px;">SPRING</a> <a href="/tags/SPRING-BOOT/" style="font-size: 10px;">SPRING BOOT</a> <a href="/tags/SPRING-SECURITY/" style="font-size: 10px;">SPRING SECURITY</a> <a href="/tags/SPRINGBOOT/" style="font-size: 10px;">SPRINGBOOT</a> <a href="/tags/SQLSESSION/" style="font-size: 10px;">SQLSESSION</a> <a href="/tags/SSO/" style="font-size: 12px;">SSO</a> <a href="/tags/TCP/" style="font-size: 16px;">TCP</a> <a href="/tags/THREAD/" style="font-size: 12px;">THREAD</a> <a href="/tags/TOKEN/" style="font-size: 10px;">TOKEN</a> <a href="/tags/VOLATILE/" style="font-size: 10px;">VOLATILE</a> <a href="/tags/ZOOKEEPER/" style="font-size: 10px;">ZOOKEEPER</a> <a href="/tags/notify/" style="font-size: 10px;">notify</a> <a href="/tags/rabbitmq/" style="font-size: 10px;">rabbitmq</a> <a href="/tags/wait/" style="font-size: 10px;">wait</a> <a href="/tags/%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B/" style="font-size: 14px;">三次握手</a> <a href="/tags/%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5/" style="font-size: 10px;">主从同步</a> <a href="/tags/%E4%B9%90%E8%A7%82%E9%94%81/" style="font-size: 10px;">乐观锁</a> <a href="/tags/%E4%BA%8B%E5%8A%A1/" style="font-size: 10px;">事务</a> <a href="/tags/%E4%BB%A3%E7%90%86/" style="font-size: 10px;">代理</a> <a href="/tags/%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B/" style="font-size: 10px;">内存模型</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" style="font-size: 10px;">分布式锁</a> <a href="/tags/%E5%8D%95%E4%BE%8B%E6%A8%A1%E5%BC%8F/" style="font-size: 10px;">单例模式</a> <a href="/tags/%E5%8D%95%E7%82%B9%E7%99%BB%E5%BD%95/" style="font-size: 10px;">单点登录</a> <a href="/tags/%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86/" style="font-size: 10px;">反向代理</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 10px;">可见性</a> <a href="/tags/%E5%91%BD%E4%BB%A4/" style="font-size: 10px;">命令</a> <a href="/tags/%E5%9B%9B%E6%AC%A1%E6%8C%A5%E6%89%8B/" style="font-size: 10px;">四次挥手</a> <a href="/tags/%E5%A4%8D%E5%88%B6/" style="font-size: 10px;">复制</a> <a href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" style="font-size: 10px;">多线程</a> <a href="/tags/%E5%AE%B9%E5%99%A8/" style="font-size: 10px;">容器</a> <a href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" style="font-size: 10px;">并发编程</a> <a href="/tags/%E5%BC%95%E7%94%A8/" style="font-size: 10px;">引用</a> <a href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" style="font-size: 12px;">微服务</a> <a href="/tags/%E6%82%B2%E8%A7%82%E9%94%81/" style="font-size: 10px;">悲观锁</a> <a href="/tags/%E6%8C%87%E4%BB%A4/" style="font-size: 10px;">指令</a> <a href="/tags/%E6%9E%B6%E6%9E%84/" style="font-size: 10px;">架构</a> <a href="/tags/%E6%9F%A5%E8%AF%A2%E6%95%88%E7%8E%87/" style="font-size: 10px;">查询效率</a> <a href="/tags/%E7%88%AC%E8%99%AB/" style="font-size: 10px;">爬虫</a> <a href="/tags/%E7%94%B5%E5%95%86/" style="font-size: 10px;">电商</a> <a href="/tags/%E7%9F%AD%E8%BF%9E%E6%8E%A5/" style="font-size: 10px;">短连接</a> <a href="/tags/%E7%B4%A2%E5%BC%95/" style="font-size: 10px;">索引</a> <a href="/tags/%E7%BA%BF%E7%A8%8B/" style="font-size: 10px;">线程</a> <a href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/" style="font-size: 10px;">线程池</a> <a href="/tags/%E8%81%8C%E8%B4%A3%E9%93%BE%E6%A8%A1%E5%BC%8F/" style="font-size: 10px;">职责链模式</a> <a href="/tags/%E8%AE%A2%E5%8D%95/" style="font-size: 10px;">订单</a> <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 10px;">设计模式</a> <a href="/tags/%E8%AF%BB%E5%86%99%E5%88%86%E7%A6%BB/" style="font-size: 10px;">读写分离</a> <a href="/tags/%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1/" style="font-size: 10px;">负载均衡</a> <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 10px;">运维</a> <a href="/tags/%E9%94%81/" style="font-size: 10px;">锁</a> <a href="/tags/%E9%95%9C%E5%83%8F/" style="font-size: 12px;">镜像</a> <a href="/tags/%E9%95%BF%E8%BF%9E%E6%8E%A5/" style="font-size: 10px;">长连接</a> <a href="/tags/%E9%9D%A2%E8%AF%95/" style="font-size: 10px;">面试</a>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">链接</h3>
+        <div class="widget">
+            <ul>
+                
+                    <li>
+                        <a href="https://www.cnblogs.com/heyonggang/" target="_blank" rel="noopener">猿人谷</a>
+                    </li>
+                
+                    <li>
+                        <a href="http://www.cnblogs.com/dolphin0520/" target="_blank" rel="noopener">Matrix海子</a>
+                    </li>
+                
+                    <li>
+                        <a href="https://www.cnblogs.com/wihainan/" target="_blank" rel="noopener">yweihainan</a>
+                    </li>
+                
+            </ul>
+        </div>
+    </div>
+
+
+            
+        
+    </div>
+</aside>
+
+                </div>
+            </div>
+        </div>
+        <footer id="footer">
+    <div class="container">
+        <div class="container-inner">
+            <a id="back-to-top" href="javascript:;"><i class="icon fa fa-angle-up"></i></a>
+            <div class="credit">
+                <h1 class="logo-wrap">
+                    <a href="/" class="logo"></a>
+                </h1>
+                <p>&copy; 2021 胡尔摩斯</p>
+                
+				<!--这一段是不蒜子的访问量统计脚本-->
+                <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+                <span id="busuanzi_container_site_pv">本站总访问量<span id="busuanzi_value_site_pv"></span>次 &nbsp;   </span>
+                <span id="busuanzi_container_site_uv">访客数<span id="busuanzi_value_site_uv"></span>人次</span>
+            </div>
+            <div class="footer-plugins">
+              
+    
+
+
+            </div>
+        </div>
+    </div>
+</footer>
+        
+    <!--  -->
+    <script src="//unpkg.com/valine"></script>
+    <script>
+        var GUEST = ['nick','mail','link'];
+        var meta = '';
+        meta = meta.split(',').filter(function (item) {
+            return GUEST.indexOf(item)>-1;
+        });
+        var avatarcdn = 'https://gravatar.loli.net/avatar/' == true;
+        new Valine({
+            el: '.vcomments',
+            notify: "",
+            verify: "",
+            appId: "XrfLUFS8GBEm6p58RABdM6Ch-gzGzoHsz",
+            appKey: "Wo4mK9i26qPw5TFP8TytPdMr",
+            placeholder: "Just Do It",
+            avatar:"identicon",
+            recordIP:"true",
+            visitor: "true"
+        });
+    </script>
+<!--  -->
+
+
+
+
+    
+        
+<script src="/libs/lightgallery/js/lightgallery.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-thumbnail.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-pager.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-autoplay.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-fullscreen.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-zoom.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-hash.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-share.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-video.min.js"></script>
+
+    
+    
+        
+<script src="/libs/justified-gallery/jquery.justifiedGallery.min.js"></script>
+
+    
+    
+
+    
+      <script data-ad-client="ca-pub-8167041820940565" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+
+    
+
+
+
+<!-- Custom Scripts -->
+
+<script src="/js/main.js"></script>
+
+
+    </div>
+</body>
+</html>

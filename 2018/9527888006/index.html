@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+
+    
+
+    
+    <title>Java NIO 基础知识 | 胡尔摩斯</title>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="keywords" content="JAVA,NIO,IO" />
+    
+    <meta name="description" content="1. 前言前言部分是科普，读者可自行选择是否阅读这部分内容。 为什么我们需要关心 NIO？我想很多业务猿都会有这个疑问。 我在工作的前两年对这个问题也很不解，因为那个时候我认为自己已经非常熟悉 IO 操作了，读写文件什么的都非常溜了，IO 包无非就是 File、RandomAccessFile、字节流、字符流这些，感觉没什么好纠结的。最混乱的当属 InputStream&#x2F;OutputStream">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java NIO 基础知识">
+<meta property="og:url" content="http://huermosi.xyz/2018/9527888006/index.html">
+<meta property="og:site_name" content="胡尔摩斯">
+<meta property="og:description" content="1. 前言前言部分是科普，读者可自行选择是否阅读这部分内容。 为什么我们需要关心 NIO？我想很多业务猿都会有这个疑问。 我在工作的前两年对这个问题也很不解，因为那个时候我认为自己已经非常熟悉 IO 操作了，读写文件什么的都非常溜了，IO 包无非就是 File、RandomAccessFile、字节流、字符流这些，感觉没什么好纠结的。最混乱的当属 InputStream&#x2F;OutputStream">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://huermosi.xyz/2018/9527888006/1.png">
+<meta property="article:published_time" content="2018-01-24T10:24:41.000Z">
+<meta property="article:modified_time" content="2021-04-10T10:33:20.562Z">
+<meta property="article:author" content="胡尔摩斯">
+<meta property="article:tag" content="JAVA">
+<meta property="article:tag" content="NIO">
+<meta property="article:tag" content="IO">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://huermosi.xyz/2018/9527888006/1.png">
+    
+
+    
+        <link rel="alternate" href="/atom.xml" title="胡尔摩斯" type="application/atom+xml" />
+    
+
+    
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/libs/titillium-web/styles.css">
+
+    
+<link rel="stylesheet" href="/libs/source-code-pro/styles.css">
+
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    
+<script src="/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    
+    
+        
+<link rel="stylesheet" href="/libs/lightgallery/css/lightgallery.min.css">
+
+    
+    
+        
+<link rel="stylesheet" href="/libs/justified-gallery/justifiedGallery.min.css">
+
+    
+    
+    
+
+
+	
+	<!--百度统计-->
+	<script>
+	var _hmt = _hmt || [];
+	(function() {
+	  var hm = document.createElement("script");
+	  hm.src = "https://hm.baidu.com/hm.js?025104cd42fa406fd2c9f41125b6d7ce";
+	  var s = document.getElementsByTagName("script")[0]; 
+	  s.parentNode.insertBefore(hm, s);
+	})();
+	</script>
+	
+	<!--百度SEO-->
+	<script>
+	(function(){
+		var bp = document.createElement('script');
+		var curProtocol = window.location.protocol.split(':')[0];
+		if (curProtocol === 'https') {
+			bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+		}
+		else {
+			bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+		}
+		var s = document.getElementsByTagName("script")[0];
+		s.parentNode.insertBefore(bp, s);
+	})();
+	</script>
+	
+	<!--Google SEO-->
+	<meta name="google-site-verification" content="eQEfd78WjFtLEjkKijFZOBmGhY2J4CI_qGL_RX8IUEs" />
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+    <div id="wrap">
+        <header id="header">
+    <div id="header-outer" class="outer">
+        <div class="container">
+            <div class="container-inner">
+                <div id="header-title">
+                    <h1 class="logo-wrap">
+                        <a href="/" class="logo"></a>
+                    </h1>
+                    
+                        <h2 class="subtitle-wrap">
+                            <p class="subtitle">胡尔摩斯</p>
+                        </h2>
+                    
+                </div>
+                <div id="header-inner" class="nav-container">
+                    <a id="main-nav-toggle" class="nav-icon fa fa-bars"></a>
+                    <div class="nav-container-inner">
+                        <ul id="main-nav">
+                            
+                                <li class="main-nav-list-item" >
+                                    <a class="main-nav-list-link" href="/">主页</a>
+                                </li>
+                            
+                                        <ul class="main-nav-list"><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/DOCKER/">DOCKER</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/ES/">ES</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/HTTP/">HTTP</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/JAVA/">JAVA</a><ul class="main-nav-list-child"><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/JAVA/JSOUP/">JSOUP</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/JAVA/JVM/">JVM</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/JAVA/NIO/">NIO</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/JAVA/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/JAVA/%E9%94%81/">锁</a></li></ul></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/MICROSERVICE/">MICROSERVICE</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/MQ/">MQ</a><ul class="main-nav-list-child"><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/MQ/RabbitMQ/">RabbitMQ</a></li></ul></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/MYBATIS/">MYBATIS</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/MYSQL/">MYSQL</a><ul class="main-nav-list-child"><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/MYSQL/%E4%BC%98%E5%8C%96/">优化</a></li></ul></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/NGINX/">NGINX</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/SPRING/">SPRING</a><ul class="main-nav-list-child"><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/SPRING/SPRING-SECURITY/">SPRING SECURITY</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/SPRING/SPRINGBOOT/">SPRINGBOOT</a></li></ul></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/SSO/">SSO</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/TCP/">TCP</a></li><li class="main-nav-list-item"><a class="main-nav-list-link" href="/categories/%E6%9D%82%E9%A1%B9/">杂项</a></li></ul>
+                                    
+                        </ul>
+                        <nav id="sub-nav">
+                            <div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="搜索" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="想要查找什么..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+        <div class="container">
+            <div class="main-body container-inner">
+                <div class="main-body-inner">
+                    <section id="main">
+                        <div class="main-body-header">
+    <h1 class="header">
+    
+    <a class="page-title-link" href="/categories/JAVA/">JAVA</a><i class="icon fa fa-angle-right"></i><a class="page-title-link" href="/categories/JAVA/NIO/">NIO</a>
+    </h1>
+</div>
+
+                        <div class="main-body-content">
+                            <article id="post-java/java-nio-basic" class="article article-single article-type-post" itemscope itemprop="blogPost">
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+    
+        <h1 class="article-title" itemprop="name">
+        Java NIO 基础知识
+        </h1>
+    
+
+            </header>
+        
+        
+            <div class="article-meta">
+                
+    <div class="article-date">
+      <i class="fa fa-calendar"></i>
+      <a href="/2018/9527888006/" class="article-date">
+         <time datetime="2018-01-24T10:24:41.000Z" itemprop="datePublished">2018-01-24</time>
+      </a>
+    </div>
+
+
+                
+
+                
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/IO/" rel="tag">IO</a>, <a class="tag-link" href="/tags/JAVA/" rel="tag">JAVA</a>, <a class="tag-link" href="/tags/NIO/" rel="tag">NIO</a>
+    </div>
+
+                
+   <span id="/2018/9527888006/" class="leancloud-visitors" data-flag-title="Java NIO 基础知识">
+   <i class="fa fa-eye"></i>
+   <span class="post-meta-item-text">阅读: </span>
+   <i class="leancloud-visitors-count">-</i>
+   </span>
+
+
+                
+   <div class="article-counter">
+      <i class="fa fa-file-word-o"></i>
+      <span class="post-count-item-text">字数: </span>
+      <span class="post-count">5.7k</span>
+      <!-- 
+	  <i class="fa fa-clock-o"></i>
+      <span class="post-time-item-text">阅读时长: </span>
+      <span class="post-count">19 分钟 </span>
+	  -->
+   </div>
+
+
+            </div>
+        
+        
+        <div class="article-entry" itemprop="articleBody">
+            <h4 id="1-前言"><a href="#1-前言" class="headerlink" title="1. 前言"></a>1. 前言</h4><p>前言部分是科普，读者可自行选择是否阅读这部分内容。</p>
+<p>为什么我们需要关心 NIO？我想很多业务猿都会有这个疑问。</p>
+<p>我在工作的前两年对这个问题也很不解，因为那个时候我认为自己已经非常熟悉 IO 操作了，读写文件什么的都非常溜了，IO 包无非就是 File、RandomAccessFile、字节流、字符流这些，感觉没什么好纠结的。最混乱的当属 InputStream/OutputStream 一大堆的类不知道谁是谁，不过了解了装饰者模式以后，也都轻松破解了。</p>
+<p>在 Java 领域，一般性的文件操作确实只需要和 java.io 包打交道就可以了，尤其对于写业务代码的程序员来说。不过，当你写了两三年代码后，你的业务代码可能已经写得很溜了，蒙着眼睛也能写增删改查了。这个时候，也许你会想要开始了解更多的底层内容，包括并发、JVM、分布式系统、各个开源框架源码实现等，处于这个阶段的程序员会开始认识到 NIO 的用处，因为系统间通讯无处不在。</p>
+<p>可能很多人不知道 Netty 或 Mina 有什么用？和 Tomcat 有什么区别？为什么我用 HTTP 请求就可以解决应用间调用的问题却要使用 Netty？</p>
+<p>当然，这些问题的答案很简单，就是为了提升性能。那意思是 Tomcat 性能不好？当然不是，它们的使用场景就不一样。当初我也不知道 Nginx 摆在 Tomcat 前面有什么用，也是经过实践慢慢领悟到了那么些意思。</p>
+<blockquote>
+<p>Nginx 是 web 服务器，Tomcat/Jetty 是应用服务器，Netty 是通讯工具。</p>
+</blockquote>
+<p>也许你现在还不知道 NIO 有什么用，但是一定不要放弃学习它。</p>
+<h4 id="2-缓冲区操作"><a href="#2-缓冲区操作" class="headerlink" title="2. 缓冲区操作"></a>2. 缓冲区操作</h4><p>缓冲区是 NIO 操作的核心，本质上 NIO 操作就是缓冲区操作。</p>
+<p>写操作是将缓冲区的数据排干，如将数据从缓冲区持久化到磁盘中。</p>
+<p>读操作是将数据填充到缓冲区中，以便应用程序后续使用数据。</p>
+<p>当然，我们这里说的缓冲区是指用户空间的缓冲区。</p>
+<p><img src="/2018/9527888006/1.png" alt title="点击放大"></p>
+<p>简单分析下上图。应用程序发出读操作后，内核向磁盘控制器发送命令，要求磁盘返回相应数据，磁盘控制器通过 DMA 直接将数据发送到内核缓冲区。一旦内核缓冲区满了，内核即把数据拷贝到请求数据的进程指定的缓冲区中。</p>
+<blockquote>
+<p>DMA: Direct Memory Access<br>Wikipedia：直接内存访问是计算机科学中的一种内存访问技术。它允许某些电脑内部的硬件子系统（电脑外设），可以独立地直接读写系统内存，而不需中央处理器（CPU）介入处理 。在同等程度的处理器负担下，DMA 是一种快速的数据传送方式。很多硬件的系统会使用 DMA，包含硬盘控制器、绘图显卡、网卡和声卡。<br>也就是说，磁盘控制器可以在不用 CPU 的帮助下就将数据从磁盘写到内存中，毕竟让 CPU 等待 IO 操作完成是一种浪费</p>
+</blockquote>
+<p>很容易看出来，数据先到内核，然后再从内核复制到用户空间缓冲区的做法并不高效，下面简单说说为什么需要这么设计。</p>
+<p>首先，用户空间运行的代码是不可以直接访问硬件的，需要由内核空间来负责和硬件通讯，内核空间由操作系统控制。</p>
+<p>其次，磁盘存储的是固定大小的数据块，磁盘按照扇区来组织数据，而用户进程请求的一般都是任意大小的数据块，所以需要由内核来负责协调，内核会负责组装、拆解数据。</p>
+<p>内核空间会对数据进行缓存和预读取，所以，如果用户进程需要的数据刚好在内核空间中，直接拷贝过来就可以了。如果内核空间没有用户进程需要的数据的话，需要挂起用户进程，等待数据准备好。</p>
+<h4 id="3-虚拟内存"><a href="#3-虚拟内存" class="headerlink" title="3. 虚拟内存"></a>3. 虚拟内存</h4><p>这个概念大家都懂，这里就继续啰嗦一下了，虚拟内存是计算机系统内存管理的一种技术。前面说的缓存区操作看似简单，但是具体到底层细节，还是蛮复杂的。</p>
+<p>下面的描述，我尽量保证准确，但是不会展开得太具体，因为虚拟内存还是蛮复杂的，要完全介绍清楚，恐怕需要很大的篇幅，如果读者对这方面的内容感兴趣的话，建议读者寻找更加专业全面的介绍资料，如《深入理解计算机系统》。</p>
+<p>物理内存被组织成一个很大的数组，每个单元是一个字节大小，然后每个字节都有一个唯一的物理地址，这应该很好理解。</p>
+<p>虚拟内存是对物理内存的抽象，它使得应用程序认为它自己拥有连续可用的内存（一个连续完整的地址空间），而实际上，应用程序得到的全部内存其实是一个假象，它通常会被分隔成多个物理内存碎片（后面说的页），还有部分暂时存储在外部磁盘存储器上，在需要时进行换入换出。</p>
+<p>举个例子，在 32 位系统中，每个应用程序能访问到的内存是 4G（32 位系统的最大寻址空间 2^32），这里的 4G 就是虚拟内存，每个程序都以为自己拥有连续的 4G 空间的内存，即使我们的计算机只有 2G 的物理内存。也就是说，对于机器上同时运行的多个应用程序，每个程序都以为自己能得到连续的 4G 的内存。这中间就是使用了虚拟内存。</p>
+<p>我们从概念上看，虚拟内存也被组织成一个很大的数组，每个单元也是一个字节大小，每个字节都有唯一的虚拟地址。它被存储于磁盘上，物理内存是它的缓存。</p>
+<p>物理内存作为虚拟内存的缓存，当然不是以字节为单位进行组织的，那样效率太低了，它们之间是以页（page）进行缓存的。虚拟内存被分割为一个个虚拟页，物理内存也被分割为一个个物理页，这两个页的大小应该是一致的，通常是 4KB - 2MB。</p>
+<p>举个例子，看下图：</p>
+<p><img src="/2018/9527888006/2.png" alt title="点击放大"></p>
+<p>进程 1 现在有 8 个虚拟页，其中有 2 个虚拟页缓存在主存中，6 个还在磁盘上，需要的时候再读入主存中；进程 2 有 7 个虚拟页，其中 4 个缓存在主存中，3 个还在磁盘上。</p>
+<p>在 CPU 读取内存数据的时候，给出的是虚拟地址，将一个虚拟地址转换为物理地址的任务我们称之为地址翻译。在主存中的查询表存放了虚拟地址到物理地址的映射关系，表的内容由操作系统维护。CPU 需要访问内存时，CPU 上有一个叫做内存管理单元的硬件会先去查询真实的物理地址，然后再到指定的物理地址读取数据。</p>
+<p>上面说的那个查询表，我们称之为页表，虚拟内存系统通过页表来判断一个虚拟页是否已经缓存在了主存中。如果是，页表会负责到物理页的映射；如果不命中，也就是我们经常会见到的概念缺页，对应的英文是 page fault，系统首先判断这个虚拟页存放在磁盘的哪个位置，然后在物理内存中选择一个牺牲页，并将虚拟页从磁盘复制到内存中，替换这个牺牲页。</p>
+<p>在磁盘和内存之间传送页的活动叫做交换（swapping）或者页面调度（paging）。</p>
+<p>下面，简单介绍下虚拟内存带来的好处。</p>
+<p>SRAM缓存：表示位于 CPU 和主存之间的 L1、L2 和 L3 高速缓存。</p>
+<p>DRAM缓存：表示虚拟内存系统的缓存，缓存虚拟页到主存中。</p>
+<p>物理内存访问速度比高速缓存要慢 10 倍左右，而磁盘要比物理内存慢大约 100000 倍。所以，DRAM 的缓存不命中比 SRAM 缓存不命中代价要大得多，因为 DRAM 缓存一旦不命中，就需要到磁盘加载虚拟页。而 SRAM 缓存不命中，通常由 DRAM 的主存来服务。而从磁盘的一个扇区读取第一个字节的时间开销比起读这个扇区中连续的字节要慢大约 100000 倍。</p>
+<blockquote>
+<p>了解 Kafka 的读者应该知道，消息在磁盘中的顺序存储对于 Kafka 的性能至关重要。</p>
+</blockquote>
+<p>结论就是，IO 的性能主要是由 DRAM 的缓存是否命中决定的。</p>
+<h4 id="4-内存映射文件"><a href="#4-内存映射文件" class="headerlink" title="4. 内存映射文件"></a>4. 内存映射文件</h4><p>英文名是 Memory Mapped Files，相信大家也都听过这个概念，在许多对 IO 性能要求比较高的 java 应用中会使用到，它是操作系统提供的支持，后面我们在介绍 NIO Buffer 的时候会碰到的 MappedByteBuffer 就是用来支持这一特性的。</p>
+<p>是什么：</p>
+<p>我们可以认为内存映射文件是一类特殊的文件，我们的 Java 程序可以直接从内存中读取到文件的内容。它是通过将整个文件或文件的部分内容映射到内存页中实现的，操作系统会负责加载需要的页，所以它的速度是非常快的。</p>
+<p>优势：</p>
+<p>一旦我们将数据写入到了内存映射文件，即使我们的 JVM 挂掉了，操作系统依然会帮助我们将这部分内存数据持久化到磁盘上。当然了，如果是断电的话，还是有可能会丢失数据的。</p>
+<p>另外，它比较适合于处理大文件，因为操作系统只会在我们需要的页不在内存中时才会去加载页数据，而用其处理大量的小文件反而可能会造成频繁的缺页。</p>
+<p>另一个重要的优势就是内存共享。我们可以在多个进程中同时使用同一个内存映射文件，也算是一种进程间协作的方式吧。想像下进程间的数据通讯平时我们一般采用 Socket 来请求，而内存共享至少可以带来 10 倍以上的性能提升。</p>
+<p>我们还没有接触到 NIO 的 Buffer，下面就简单地示意一下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.RandomAccessFile;</span><br><span class="line"><span class="keyword">import</span> java.nio.MappedByteBuffer;</span><br><span class="line"><span class="keyword">import</span> java.nio.channels.FileChannel;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MemoryMappedFileInJava</span> </span>&#123; </span><br><span class="line"></span><br><span class="line"></span><br><span class="line"> <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">int</span> count = <span class="number">10485760</span>; <span class="comment">//10 MB</span></span><br><span class="line"> <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123; RandomAccessFile memoryMappedFile = <span class="keyword">new</span> RandomAccessFile(<span class="string">"largeFile.txt"</span>, <span class="string">"rw"</span>); <span class="comment">// 将文件映射到内存中，map 方法</span></span><br><span class="line"> MappedByteBuffer out = memoryMappedFile.getChannel().map(FileChannel.MapMode.READ_WRITE, <span class="number">0</span>, count); <span class="comment">// 这一步的写操作其实是写到内存中，并不直接操作文件</span></span><br><span class="line"> <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; count; i++) &#123;</span><br><span class="line"> out.put((<span class="keyword">byte</span>) <span class="string">'A'</span>);</span><br><span class="line"> &#125; System.out.println(<span class="string">"Writing to Memory Mapped File is completed"</span>); <span class="comment">// 这一步的读操作读的是内存</span></span><br><span class="line"> <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">10</span> ; i++) &#123; System.out.print((<span class="keyword">char</span>) out.get(i));</span><br><span class="line"> &#125; System.out.println(<span class="string">"Reading from Memory Mapped File is completed"</span>);</span><br><span class="line"> &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们需要注意的一点就是，用于加载内存映射文件的内存是堆外内存。</p>
+<p>参考资料：Why use Memory Mapped File or MapppedByteBuffer in Java</p>
+<h4 id="5-分散-聚集-IO"><a href="#5-分散-聚集-IO" class="headerlink" title="5. 分散/聚集 IO"></a>5. 分散/聚集 IO</h4><p>scatter/gather IO，个人认为这个看上去很酷炫，实践中比较难使用到。</p>
+<p>分散/聚集 IO（另一种说法是 vectored I/O 也就是向量 IO）是一种可以在单次操作中对多个缓冲区进行输入输出的方法，可以把多个缓冲区的数据写到单个数据流，也可以把单个数据流读到多个缓冲区中。</p>
+<p><img src="/2018/9527888006/3.png" alt title="点击放大"></p>
+<p><img src="/2018/9527888006/4.png" alt title="点击放大"></p>
+<p>这个功能是操作系统提供的支持，Java NIO 包中已经给我们提供了操作接口 。这种操作可以提高一定的性能，因为一次操作相当于多次的线性操作，同时这也带来了原子性的支持，因为如果用多线程来操作的话，可能存在对同一文件的操作竞争。</p>
+<h4 id="6-非阻塞-IO"><a href="#6-非阻塞-IO" class="headerlink" title="6. 非阻塞 IO"></a>6. 非阻塞 IO</h4><p>相信读者在很多地方都看到过说 NIO 其实不是代表 New IO，而是 Non-Blocking IO，我们这里不纠结这个。我想之所以会有这个说法，是因为在 Java 1.4 第一次推出 NIO 的时候，提供了 Non-Blocking IO 的支持。</p>
+<p>在理解非阻塞 IO 前，我们首先要明白，它的对立面 阻塞模式为什么不好。</p>
+<p>比如说 InputStream.read 这个方法，一旦某个线程调用这个方法，那么就将一直阻塞在这里，直到数据传输完毕，返回 -1，或者由于其他错误抛出了异常。</p>
+<p>我们再拿 web 服务器来说，阻塞模式的话，每个网络连接进来，我们都需要开启一个线程来读取请求数据，然后到后端进行处理，处理结束后将数据写回网络连接，这整个流程需要一个独立的线程来做这件事。那就意味着，一旦请求数量多了以后，需要创建大量的线程，大量的线程必然带来创建线程、切换线程的开销，更重要的是，要给每个线程都分配一部分内存，会使得内存迅速被消耗殆尽。我们说多线程是性能利器，但是这就是过多的线程导致系统完全消化不了了。</p>
+<p>通常，我们可以将 IO 分为两类：面向数据块（block-oriented）的 IO 和面向流（stream-oriented）的 IO。比如文件的读写就是面向数据块的，读取键盘输入或往网络中写入数据就是面向流的。</p>
+<blockquote>
+<p>注意，这节混着用了流和通道这两个词，提出来这点是希望不会对读者产生困扰。</p>
+</blockquote>
+<p>面向流的 IO 往往是比较慢的，如网络速度比较慢、需要一直等待用户新的输入等。</p>
+<p>这个时候，我们可以用一个线程来处理多个流，让这个线程负责一直轮询这些流的状态，当有的流有数据到来后，进行相应处理，也可以将数据交给其他子线程来处理，这个线程继续轮询。</p>
+<p>问题来了，不断地轮询也会带来资源浪费呀，尤其是当一个线程需要轮询很多的数据流的时候。</p>
+<p>现代操作系统提供了一个叫做 readiness selection 的功能，我们让操作系统来监控一个集合中的所有的通道，当有的通道数据准备好了以后，就可以直接到这个通道获取数据。当然，操作系统不会通知我们，但是我们去问操作系统的时候，它会知道告诉我们通道 N 已经准备好了，而不需要自己去轮询（后面我们会看到，还要自己轮询的 select 和 poll）。</p>
+<p>后面我们在介绍 Java NIO 的时候会说到 Selector，对应类<br>java.nio.channels.Selector，这个就是 java 对 readiness selection 的支持。这样一来，我们的一个线程就可以更加高效地管理多个通道了。</p>
+<p><img src="/2018/9527888006/5.png" alt title="点击放大"></p>
+<p>上面这张图我想大家也都可能看过，就是用一个 Selector 来管理多个 Channel，实现了一个线程管理多个连接。说到底，其实就是解决了我们前面说的阻塞模式下线程创建过多的问题。</p>
+<p>在 Java 中，继承自 SelectableChannel 的子类就是实现了非阻塞 IO 的，我们可以看到主要有 socket IO 中的 DatagramChannel 和 SocketChannel，而 FileChannel 并没有继承它。所以，文件 IO 是不支持非阻塞模式的。</p>
+<p>在系统实现上，POSIX 提供了 select 和 poll 两种方式。它们两个最大的区别在于持有句柄的数量上，select 最多只支持到 FD_SETSIZE（一般常见的是 1024），显然很多场景都会超过这个数量。而 poll 我们想创建多少就创建多少。它们都有一个共同的缺点，那就是当有任务完成后，我们只能知道有几个任务完成了，而不知道具体是哪几个句柄，所以还需要进行一次扫描。</p>
+<p>正是由于 select 和 poll 的不足，所以催生了以下几个实现。BSD&amp; OS X 中的 kqueue，Solaris 中的 /dev/poll，还有 Linux 中的 epoll。</p>
+<p>Windows 没有提供额外的实现，只能使用 select。</p>
+<p>在不同的操作系统上，JDK 分别选择相应的系统支持的非阻塞实现方式。</p>
+<h4 id="7-异步-IO"><a href="#7-异步-IO" class="headerlink" title="7. 异步 IO"></a>7. 异步 IO</h4><p>我们知道 Java 1.4 引入了 New IO，从 Java 7 开始，就不再是 New IO 了，而是 More New IO 来临了，我们也称之为 NIO2。</p>
+<p>Java7 在 NIO 上带来的最大的变化应该就属引入了 Asynchronous IO（异步 IO）。本来吧，异步 IO 早就提上日程了，可是大佬们没有时间完成，所以才一直拖到了 java 7 的。废话不多说，简单来看看异步 IO 是什么。</p>
+<p>要说异步 IO 是什么，当然还得从 Non-Blocking IO 没有解决的问题入手。非阻塞 IO 很好用，它解决了阻塞式 IO 的等待问题，但是它的缺点是需要我们去轮询才能得到结果。</p>
+<p>而异步 IO 可以解决这个问题，线程只需要初始化一下，提供一个回调方法，然后就可以干其他的事情了。当数据准备好以后，系统会负责调用回调方法。</p>
+<p>异步 IO 最主要的特点就是回调，其实回调在我们日常的代码中也是非常常见的。</p>
+<p>最简单的方法就是设计一个线程池，池中的线程负责完成一个个阻塞式的操作，一旦一个操作完成，那么就调用回调方法。比如 web 服务器中，我们前面已经说过不能每来一个请求就新开一个线程，我们可以设计一个线程池，在线程池外用一个线程来接收请求，然后将要完成的任务交给线程池中的线程并提供一个回调方法，这样这个线程就可以去干其他的事情了，如继续处理其他的请求。等任务完成后，池中的线程就可以调用回调方法进行通知了。</p>
+<p>另外一种方式就是自己不设计线程池，让操作系统帮我们实现。流程也是基本一样的，提供给操作系统回调方法，然后就可以干其他事情了，等操作完成后，操作系统会负责回调。这种方式的缺点就是依赖于操作系统的具体实现，不过也有它的一些优势。</p>
+<p>首先，我们自己设计处理任务的线程池的话，我们需要掌握好线程池的大小，不能太大，也不能太小，这往往需要凭我们的经验；其次，让操作系统来做这件事情的话，操作系统可以在一些场景中帮助我们优化性能，如文件 IO 过程中帮助更快找到需要的数据。</p>
+<p>操作系统对异步 IO 的实现也有很多种方式，主要有以下 3 中：</p>
+<p>Linux AIO：由 Linux 内核提供支持</p>
+<p>POSIX AIO：Linux，Mac OS X（现在该叫 Mac OS 了），BSD，solaris 等都支持，在 Linux 中是通过 glibc 来提供支持的。</p>
+<p>Windows：提供了一个叫做 completion ports 的机制。</p>
+<p>这篇文章 asynchronous disk I/O 的作者表示，在类 unix 的几个系统实现中，限制太多，实现的质量太差，还不如自己用线程池进行管理异步操作。</p>
+<p>而 Windows 系统下提供的异步 IO 的实现方式有点不一样。它首先让线程池中的线程去自旋调用<br>GetQueuedCompletionStatus.aspx) 方法，判断是否就绪。然后，让任务跑起来，但是需要提供特定的参数来告诉执行任务的线程，让线程执行完成后将结果通知到线程池中。一旦任务完成，操作系统会将线程池中阻塞在 GetQueuedCompletionStatus 方法的线程唤醒，让其进行后续的结果处理。</p>
+<p>Windows 智能地唤醒那些执行 GetQueuedCompletionStatus 方法的线程，以让线程池中活跃的线程数始终保持在合理的水平。这样就不至于创建太多的线程，降低线程切换的开销。</p>
+<p>Java 7 在异步 IO 的实现上，如果是 Linux 或者其他类 Unix 系统上，是采用自建线程池实现的，如果是 Windows 系统上，是采用系统提供的 completion ports 来实现的。</p>
+<p>所以，在非阻塞 IO 和异步 IO 之间，我们应该怎么选择呢？</p>
+<p>如果是文件 IO，我们没得选，只能选择异步 IO。</p>
+<p>如果是 Socket IO，在类 unix 系统下我们应该选择使用非阻塞 IO，Netty 是基于非阻塞模式的；在 Windows 中我们应该使用异步 IO。</p>
+<p>当然了，Java 的存在就是为了实现平台无关化，所以，其实不需要我们选择，了解这些权当让自己涨点知识吧。</p>
+<h4 id="8-总结"><a href="#8-总结" class="headerlink" title="8. 总结"></a>8. 总结</h4><p>和其他几篇文章一样，也没什么好总结的，要说的都在文中了，希望读者能学到点东西吧。</p>
+<p>如果哪里说得不对了，我想也是正常的，我这些年写的都是 Java，对于底层了解得愈发的少了，所以如果读者发现有什么不合理的内容，非常希望读者可以提出来。</p>
+<blockquote>
+<p>本文转载自<a href="https://www.toutiao.com/i6514442539771101699/" target="_blank" rel="noopener">云南全攻略</a>头条，原文连接点<a href="https://www.toutiao.com/i6514442539771101699/" target="_blank" rel="noopener">这里</a>，版权归原作者所有，转载目的是为了避免以后找不到。</p>
+</blockquote>
+
+        </div>
+        <footer class="article-footer">
+            
+
+    <div class="bdsharebuttonbox">
+    <a href="#" class="bds_more" data-cmd="more">分享到：</a>
+    <a href="#" class="bds_qzone" data-cmd="qzone" title="分享到QQ空间">QQ空间</a>
+    <a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博">新浪微博</a>
+    <a href="#" class="bds_tqq" data-cmd="tqq" title="分享到腾讯微博">腾讯微博</a>
+    <a href="#" class="bds_renren" data-cmd="renren" title="分享到人人网">人人网</a>
+    <a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信">微信</a>
+</div>
+<script>
+window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"16"},"share":{"bdSize":16}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='//bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+<style>
+    .bdshare_popup_box {
+        border-radius: 4px;
+        border: #e1e1e1 solid 1px;
+    }
+    .bdshare-button-style0-16 a,
+    .bdshare-button-style0-16 .bds_more {
+        padding-left: 20px;
+        margin: 6px 10px 6px 0;
+    }
+    .bdshare_dialog_list a,
+    .bdshare_popup_list a,
+    .bdshare_popup_bottom a {
+        font-family: 'Microsoft Yahei';
+    }
+    .bdshare_popup_top {
+        display: none;
+    }
+    .bdshare_popup_bottom {
+        height: auto;
+        padding: 5px;
+    }
+</style>
+
+
+
+        </footer>
+    </div>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "author": {
+            "@type": "Person",
+            "name": "胡尔摩斯"
+        },
+        "headline": "Java NIO 基础知识",
+        "image": "http://huermosi.xyz/2018/9527888006/1.png",
+        "keywords": "JAVA NIO IO",
+        "genre": "JAVA NIO",
+        "datePublished": "2018-01-24",
+        "dateCreated": "2018-01-24",
+        "dateModified": "2021-04-10",
+        "url": "http://huermosi.xyz/2018/9527888006/",
+        "description": "1. 前言前言部分是科普，读者可自行选择是否阅读这部分内容。
+为什么我们需要关心 NIO？我想很多业务猿都会有这个疑问。
+我在工作的前两年对这个问题也很不解，因为那个时候我认为自己已经非常熟悉 IO 操作了，读写文件什么的都非常溜了，IO 包无非就是 File、RandomAccessFile、字节流、字符流这些，感觉没什么好纠结的。最混乱的当属 InputStream/OutputStream ",
+        "wordCount": 599
+    }
+</script>
+
+</article>
+
+    <section id="comments">
+    
+        <!--  -->
+    <!-- Valine -->
+    <!-- <div class="vcomments"></div> -->
+<!--  -->
+
+    
+    </section>
+
+
+
+                        </div>
+                    </section>
+                    <aside id="sidebar">
+    <a class="sidebar-toggle" title="Expand Sidebar"><i class="toggle icon"></i></a>
+    <div class="sidebar-top">
+        <p>关注我 :</p>
+        <ul class="social-links">
+            
+                
+                <li>
+                    <a class="social-tooltip" title="toutiao" href="https://www.toutiao.com/c/user/79188316021/" target="_blank" rel="noopener">
+						
+							<i class="icon fa fa-tumblr"></i>
+						
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a class="social-tooltip" title="xigua" href="https://www.ixigua.com/home/79188316021/" target="_blank" rel="noopener">
+						
+							<i class="icon fa fa-youtube-play"></i>
+						
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a class="social-tooltip" title="rss" href="/atom.xml" target="_blank" rel="noopener">
+						
+							<i class="icon fa fa-rss"></i>
+						
+                    </a>
+                </li>
+                
+            
+        </ul>
+    </div>
+    
+        
+<nav id="article-nav">
+    
+        <a href="/2018/9527888014/" id="article-nav-newer" class="article-nav-link-wrap">
+        <strong class="article-nav-caption">下一篇</strong>
+        <p class="article-nav-title">
+        
+            从Elasticsearch来看分布式系统架构设计
+        
+        </p>
+        <i class="icon fa fa-chevron-right" id="icon-chevron-right"></i>
+    </a>
+    
+    
+        <a href="/2018/9527888005/" id="article-nav-older" class="article-nav-link-wrap">
+        <strong class="article-nav-caption">上一篇</strong>
+        <p class="article-nav-title">微服务架构时代，运维体系建设要以“应用”为核心</p>
+        <i class="icon fa fa-chevron-left" id="icon-chevron-left"></i>
+        </a>
+    
+</nav>
+
+    
+    <div class="widgets-container">
+        
+            
+                
+
+            
+                
+    <div class="widget-wrap">
+        <h3 class="widget-title">最新文章</h3>
+        <div class="widget">
+            <ul id="recent-post" class="">
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2021/9527888015/" class="thumbnail">
+    
+    
+        <span style="background-image:url(/2021/9527888015/1.png)" alt="SqlSessionTemplate是如何保证MyBatis中SqlSession的线程安全的" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/MYBATIS/">MYBATIS</a></p>
+                            <p class="item-title"><a href="/2021/9527888015/" class="title">SqlSessionTemplate是如何保证MyBatis中SqlSession的线程安全的</a></p>
+                            <p class="item-date"><time datetime="2021-04-15T09:43:20.000Z" itemprop="datePublished">2021-04-15</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2021/9527202104222212000/" class="thumbnail">
+    
+    
+        <span style="background-image:url(/2021/9527202104222212000/1.png)" alt="有点狠有点猛，我用责任链模式重构了业务代码" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/JAVA/">JAVA</a></p>
+                            <p class="item-title"><a href="/2021/9527202104222212000/" class="title">有点狠有点猛，我用责任链模式重构了业务代码</a></p>
+                            <p class="item-date"><time datetime="2021-04-07T13:28:07.000Z" itemprop="datePublished">2021-04-07</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2021/952720210072154/" class="thumbnail">
+    
+    
+        <span style="background-image:url(/2021/952720210072154/1.png)" alt="SpringBoot国际化实战，实现语言的自由切换" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/SPRING/">SPRING</a><i class="icon fa fa-angle-right"></i><a class="article-category-link" href="/categories/SPRING/SPRINGBOOT/">SPRINGBOOT</a></p>
+                            <p class="item-title"><a href="/2021/952720210072154/" class="title">SpringBoot国际化实战，实现语言的自由切换</a></p>
+                            <p class="item-date"><time datetime="2021-04-07T13:02:00.000Z" itemprop="datePublished">2021-04-07</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2021/9527202101-07%2021:45:05/" class="thumbnail">
+    
+    
+        <span style="background-image:url(/2021/9527202101-07%2021:45:05/1.png)" alt="MySQL的万字总结（缓存，索引，Explain，事务，redo日志等）" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/MYSQL/">MYSQL</a></p>
+                            <p class="item-title"><a href="/2021/9527202101-07%2021:45:05/" class="title">MySQL的万字总结（缓存，索引，Explain，事务，redo日志等）</a></p>
+                            <p class="item-date"><time datetime="2021-01-07T13:45:05.000Z" itemprop="datePublished">2021-01-07</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2020/952720210401151900/" class="thumbnail">
+    
+    
+        <span style="background-image:url(/2020/952720210401151900/1.png)" alt="面试官：你是如何评估一个线程池需要设置多少个线程" class="thumbnail-image"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"><a class="article-category-link" href="/categories/JAVA/">JAVA</a><i class="icon fa fa-angle-right"></i><a class="article-category-link" href="/categories/JAVA/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a></p>
+                            <p class="item-title"><a href="/2020/952720210401151900/" class="title">面试官：你是如何评估一个线程池需要设置多少个线程</a></p>
+                            <p class="item-date"><time datetime="2020-05-11T07:18:33.000Z" itemprop="datePublished">2020-05-11</time></p>
+                        </div>
+                    </li>
+                
+            </ul>
+        </div>
+    </div>
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">分类</h3>
+        <div class="widget">
+            <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/DOCKER/">DOCKER</a><span class="category-list-count">8</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/ES/">ES</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/HTTP/">HTTP</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/JAVA/">JAVA</a><span class="category-list-count">18</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/JAVA/JSOUP/">JSOUP</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/JAVA/JVM/">JVM</a><span class="category-list-count">9</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/JAVA/NIO/">NIO</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/JAVA/%E5%A4%9A%E7%BA%BF%E7%A8%8B/">多线程</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/JAVA/%E9%94%81/">锁</a><span class="category-list-count">2</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/MICROSERVICE/">MICROSERVICE</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/MQ/">MQ</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/MQ/RabbitMQ/">RabbitMQ</a><span class="category-list-count">1</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/MYBATIS/">MYBATIS</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/MYSQL/">MYSQL</a><span class="category-list-count">5</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/MYSQL/%E4%BC%98%E5%8C%96/">优化</a><span class="category-list-count">1</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/NGINX/">NGINX</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/SPRING/">SPRING</a><span class="category-list-count">4</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/SPRING/SPRING-SECURITY/">SPRING SECURITY</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/SPRING/SPRINGBOOT/">SPRINGBOOT</a><span class="category-list-count">1</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/SSO/">SSO</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/TCP/">TCP</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%9D%82%E9%A1%B9/">杂项</a><span class="category-list-count">1</span></li></ul>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">归档</h3>
+        <div class="widget">
+            <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">2021-04</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">2021-01</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">2020-05</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">2020-04</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">2020-03</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/02/">2020-02</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">2020-01</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">2019-12</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">2019-10</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/09/">2019-09</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">2019-08</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">2018-03</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">2018-02</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">2018-01</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">2017-08</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">2017-04</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">2017-03</a><span class="archive-list-count">5</span></li></ul>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-float">
+        <h3 class="widget-title">标签云</h3>
+        <div class="widget tagcloud">
+            <a href="/tags/BOOTFS/" style="font-size: 10px;">BOOTFS</a> <a href="/tags/BUILD/" style="font-size: 12px;">BUILD</a> <a href="/tags/COMMIT/" style="font-size: 10px;">COMMIT</a> <a href="/tags/COOKIE/" style="font-size: 10px;">COOKIE</a> <a href="/tags/DOCKER/" style="font-size: 18px;">DOCKER</a> <a href="/tags/DOCKERFILE/" style="font-size: 12px;">DOCKERFILE</a> <a href="/tags/ELASTICSEARCH/" style="font-size: 10px;">ELASTICSEARCH</a> <a href="/tags/ES/" style="font-size: 10px;">ES</a> <a href="/tags/EXPLAIN/" style="font-size: 10px;">EXPLAIN</a> <a href="/tags/HTTP/" style="font-size: 10px;">HTTP</a> <a href="/tags/IO/" style="font-size: 10px;">IO</a> <a href="/tags/JAVA/" style="font-size: 20px;">JAVA</a> <a href="/tags/JMM/" style="font-size: 10px;">JMM</a> <a href="/tags/JSON/" style="font-size: 10px;">JSON</a> <a href="/tags/JSOUP/" style="font-size: 10px;">JSOUP</a> <a href="/tags/JVM/" style="font-size: 18px;">JVM</a> <a href="/tags/JWT/" style="font-size: 10px;">JWT</a> <a href="/tags/MICROSERVICE/" style="font-size: 12px;">MICROSERVICE</a> <a href="/tags/MYBATIS/" style="font-size: 12px;">MYBATIS</a> <a href="/tags/MYSQL/" style="font-size: 16px;">MYSQL</a> <a href="/tags/NGINX/" style="font-size: 12px;">NGINX</a> <a href="/tags/NIO/" style="font-size: 10px;">NIO</a> <a href="/tags/REDO/" style="font-size: 10px;">REDO</a> <a href="/tags/REGISTRY/" style="font-size: 10px;">REGISTRY</a> <a href="/tags/RESTFUL/" style="font-size: 10px;">RESTFUL</a> <a href="/tags/ROOTFS/" style="font-size: 10px;">ROOTFS</a> <a href="/tags/ReentrantLock/" style="font-size: 10px;">ReentrantLock</a> <a href="/tags/SESSION/" style="font-size: 10px;">SESSION</a> <a href="/tags/SPRING/" style="font-size: 16px;">SPRING</a> <a href="/tags/SPRING-BOOT/" style="font-size: 10px;">SPRING BOOT</a> <a href="/tags/SPRING-SECURITY/" style="font-size: 10px;">SPRING SECURITY</a> <a href="/tags/SPRINGBOOT/" style="font-size: 10px;">SPRINGBOOT</a> <a href="/tags/SQLSESSION/" style="font-size: 10px;">SQLSESSION</a> <a href="/tags/SSO/" style="font-size: 12px;">SSO</a> <a href="/tags/TCP/" style="font-size: 16px;">TCP</a> <a href="/tags/THREAD/" style="font-size: 12px;">THREAD</a> <a href="/tags/TOKEN/" style="font-size: 10px;">TOKEN</a> <a href="/tags/VOLATILE/" style="font-size: 10px;">VOLATILE</a> <a href="/tags/ZOOKEEPER/" style="font-size: 10px;">ZOOKEEPER</a> <a href="/tags/notify/" style="font-size: 10px;">notify</a> <a href="/tags/rabbitmq/" style="font-size: 10px;">rabbitmq</a> <a href="/tags/wait/" style="font-size: 10px;">wait</a> <a href="/tags/%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B/" style="font-size: 14px;">三次握手</a> <a href="/tags/%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5/" style="font-size: 10px;">主从同步</a> <a href="/tags/%E4%B9%90%E8%A7%82%E9%94%81/" style="font-size: 10px;">乐观锁</a> <a href="/tags/%E4%BA%8B%E5%8A%A1/" style="font-size: 10px;">事务</a> <a href="/tags/%E4%BB%A3%E7%90%86/" style="font-size: 10px;">代理</a> <a href="/tags/%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B/" style="font-size: 10px;">内存模型</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" style="font-size: 10px;">分布式锁</a> <a href="/tags/%E5%8D%95%E4%BE%8B%E6%A8%A1%E5%BC%8F/" style="font-size: 10px;">单例模式</a> <a href="/tags/%E5%8D%95%E7%82%B9%E7%99%BB%E5%BD%95/" style="font-size: 10px;">单点登录</a> <a href="/tags/%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86/" style="font-size: 10px;">反向代理</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 10px;">可见性</a> <a href="/tags/%E5%91%BD%E4%BB%A4/" style="font-size: 10px;">命令</a> <a href="/tags/%E5%9B%9B%E6%AC%A1%E6%8C%A5%E6%89%8B/" style="font-size: 10px;">四次挥手</a> <a href="/tags/%E5%A4%8D%E5%88%B6/" style="font-size: 10px;">复制</a> <a href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" style="font-size: 10px;">多线程</a> <a href="/tags/%E5%AE%B9%E5%99%A8/" style="font-size: 10px;">容器</a> <a href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" style="font-size: 10px;">并发编程</a> <a href="/tags/%E5%BC%95%E7%94%A8/" style="font-size: 10px;">引用</a> <a href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" style="font-size: 12px;">微服务</a> <a href="/tags/%E6%82%B2%E8%A7%82%E9%94%81/" style="font-size: 10px;">悲观锁</a> <a href="/tags/%E6%8C%87%E4%BB%A4/" style="font-size: 10px;">指令</a> <a href="/tags/%E6%9E%B6%E6%9E%84/" style="font-size: 10px;">架构</a> <a href="/tags/%E6%9F%A5%E8%AF%A2%E6%95%88%E7%8E%87/" style="font-size: 10px;">查询效率</a> <a href="/tags/%E7%88%AC%E8%99%AB/" style="font-size: 10px;">爬虫</a> <a href="/tags/%E7%94%B5%E5%95%86/" style="font-size: 10px;">电商</a> <a href="/tags/%E7%9F%AD%E8%BF%9E%E6%8E%A5/" style="font-size: 10px;">短连接</a> <a href="/tags/%E7%B4%A2%E5%BC%95/" style="font-size: 10px;">索引</a> <a href="/tags/%E7%BA%BF%E7%A8%8B/" style="font-size: 10px;">线程</a> <a href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/" style="font-size: 10px;">线程池</a> <a href="/tags/%E8%81%8C%E8%B4%A3%E9%93%BE%E6%A8%A1%E5%BC%8F/" style="font-size: 10px;">职责链模式</a> <a href="/tags/%E8%AE%A2%E5%8D%95/" style="font-size: 10px;">订单</a> <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" style="font-size: 10px;">设计模式</a> <a href="/tags/%E8%AF%BB%E5%86%99%E5%88%86%E7%A6%BB/" style="font-size: 10px;">读写分离</a> <a href="/tags/%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1/" style="font-size: 10px;">负载均衡</a> <a href="/tags/%E8%BF%90%E7%BB%B4/" style="font-size: 10px;">运维</a> <a href="/tags/%E9%94%81/" style="font-size: 10px;">锁</a> <a href="/tags/%E9%95%9C%E5%83%8F/" style="font-size: 12px;">镜像</a> <a href="/tags/%E9%95%BF%E8%BF%9E%E6%8E%A5/" style="font-size: 10px;">长连接</a> <a href="/tags/%E9%9D%A2%E8%AF%95/" style="font-size: 10px;">面试</a>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">链接</h3>
+        <div class="widget">
+            <ul>
+                
+                    <li>
+                        <a href="https://www.cnblogs.com/heyonggang/" target="_blank" rel="noopener">猿人谷</a>
+                    </li>
+                
+                    <li>
+                        <a href="http://www.cnblogs.com/dolphin0520/" target="_blank" rel="noopener">Matrix海子</a>
+                    </li>
+                
+                    <li>
+                        <a href="https://www.cnblogs.com/wihainan/" target="_blank" rel="noopener">yweihainan</a>
+                    </li>
+                
+            </ul>
+        </div>
+    </div>
+
+
+            
+        
+    </div>
+</aside>
+
+                </div>
+            </div>
+        </div>
+        <footer id="footer">
+    <div class="container">
+        <div class="container-inner">
+            <a id="back-to-top" href="javascript:;"><i class="icon fa fa-angle-up"></i></a>
+            <div class="credit">
+                <h1 class="logo-wrap">
+                    <a href="/" class="logo"></a>
+                </h1>
+                <p>&copy; 2021 胡尔摩斯</p>
+                
+				<!--这一段是不蒜子的访问量统计脚本-->
+                <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+                <span id="busuanzi_container_site_pv">本站总访问量<span id="busuanzi_value_site_pv"></span>次 &nbsp;   </span>
+                <span id="busuanzi_container_site_uv">访客数<span id="busuanzi_value_site_uv"></span>人次</span>
+            </div>
+            <div class="footer-plugins">
+              
+    
+
+
+            </div>
+        </div>
+    </div>
+</footer>
+        
+    <!--  -->
+    <script src="//unpkg.com/valine"></script>
+    <script>
+        var GUEST = ['nick','mail','link'];
+        var meta = '';
+        meta = meta.split(',').filter(function (item) {
+            return GUEST.indexOf(item)>-1;
+        });
+        var avatarcdn = 'https://gravatar.loli.net/avatar/' == true;
+        new Valine({
+            el: '.vcomments',
+            notify: "",
+            verify: "",
+            appId: "XrfLUFS8GBEm6p58RABdM6Ch-gzGzoHsz",
+            appKey: "Wo4mK9i26qPw5TFP8TytPdMr",
+            placeholder: "Just Do It",
+            avatar:"identicon",
+            recordIP:"true",
+            visitor: "true"
+        });
+    </script>
+<!--  -->
+
+
+
+
+    
+        
+<script src="/libs/lightgallery/js/lightgallery.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-thumbnail.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-pager.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-autoplay.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-fullscreen.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-zoom.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-hash.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-share.min.js"></script>
+
+        
+<script src="/libs/lightgallery/js/lg-video.min.js"></script>
+
+    
+    
+        
+<script src="/libs/justified-gallery/jquery.justifiedGallery.min.js"></script>
+
+    
+    
+
+    
+      <script data-ad-client="ca-pub-8167041820940565" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+
+    
+
+
+
+<!-- Custom Scripts -->
+
+<script src="/js/main.js"></script>
+
+
+    </div>
+</body>
+</html>

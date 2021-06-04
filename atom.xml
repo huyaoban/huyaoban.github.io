@@ -568,11 +568,11 @@
     
       <category term="DOCKER" scheme="http://huermosi.xyz/tags/DOCKER/"/>
     
-      <category term="DOCKERFILE" scheme="http://huermosi.xyz/tags/DOCKERFILE/"/>
-    
       <category term="镜像" scheme="http://huermosi.xyz/tags/%E9%95%9C%E5%83%8F/"/>
     
       <category term="BUILD" scheme="http://huermosi.xyz/tags/BUILD/"/>
+    
+      <category term="DOCKERFILE" scheme="http://huermosi.xyz/tags/DOCKERFILE/"/>
     
   </entry>
   
@@ -634,13 +634,13 @@
     
       <category term="镜像" scheme="http://huermosi.xyz/tags/%E9%95%9C%E5%83%8F/"/>
     
-      <category term="BUILD" scheme="http://huermosi.xyz/tags/BUILD/"/>
-    
       <category term="BOOTFS" scheme="http://huermosi.xyz/tags/BOOTFS/"/>
     
       <category term="ROOTFS" scheme="http://huermosi.xyz/tags/ROOTFS/"/>
     
       <category term="COMMIT" scheme="http://huermosi.xyz/tags/COMMIT/"/>
+    
+      <category term="BUILD" scheme="http://huermosi.xyz/tags/BUILD/"/>
     
   </entry>
   
